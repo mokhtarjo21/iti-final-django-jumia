@@ -9,6 +9,9 @@ class User(AbstractUser):
     active_email = models.BooleanField(default=False)
     picture = models.ImageField(upload_to='users/', null=True, blank=True, default='default.jpg')
 
+    is_vendor = models.BooleanField(default=False)  #added for order (Status)
+
+
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='custom_user_set',
