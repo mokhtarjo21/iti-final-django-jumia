@@ -26,30 +26,14 @@ SECRET_KEY = 'django-insecure-krnv7y%f%ho%2f*(rb53^f9#fkprpr#v(ot@toz*hc0ceeh3@^
 DEBUG = True
 
 ALLOWED_HOSTS = []
+#CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5173",
-    "http://localhost:5173",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
 ]
-# CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'users.User'
 # Application definition
-
-CSRF_COOKIE_NAME = "csrftoken"
-CSRF_COOKIE_HTTPONLY = False  # ليتمكن frontend من قراءته
-SESSION_COOKIE_SAMESITE = 'strict'
-SESSION_COOKIE_SECURE = False  # اجعله True في الإنتاج مع HTTPS
-CSRF_COOKIE_SAMESITE = 'None'  # للسماح باستخدام الكوكيز عبر النطاقات
-CSRF_COOKIE_SECURE = False  # استخدم False إذا كنت تعمل على HTTP في بيئة التطوير
-# email management #################################
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "mokhtar.jo21@gmail.com"
-EMAIL_HOST_PASSWORD = 'mjjj sybs oeqx vzxu' # your email password
-DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
-######################################################
 
 INSTALLED_APPS = [
     'rest_framework',
@@ -62,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'home.apps.HomeConfig',
     
 ]
 
@@ -150,3 +135,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# settings.py
+
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
