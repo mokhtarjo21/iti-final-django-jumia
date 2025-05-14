@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'comment_rating.apps.CommentRatingConfig',
     'home.apps.HomeConfig',
     
 ]
