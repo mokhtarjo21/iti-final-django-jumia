@@ -2,8 +2,7 @@
 from rest_framework import serializers
 from django.utils.text import slugify
 from .models import (
-    Category, Brand, Product, ProductImage, 
-    ProductVariantType, ProductVariantValue, ProductVariant,
+    Category, Brand, Product, ProductImage, Size, Color,
     FlashSale, FlashSaleItem
 )
 
@@ -11,11 +10,18 @@ from .models import (
 
 class CategoryListSerializer(serializers.ModelSerializer):
     """Serializer for listing categories"""
+    children = serializers.SerializerMethodField()
     product_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'image', 'product_count']
+        fields = ['id', 'name', 'slug', 'image', 'product_count', 'children']
+    
+    def get_children(self, obj):
+        # Get all direct children of this category
+        children = obj.children.all()
+        # Recursively serialize children
+        return CategoryListSerializer(children, many=True).data
     
     def get_product_count(self, obj):
         return obj.products.count()
@@ -41,10 +47,31 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 
 class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating categories"""
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        required=False,
+        allow_null=True
+    )
     
     class Meta:
         model = Category
         fields = ['name', 'parent', 'image', 'is_active']
+    
+    def validate_parent(self, value):
+        """Validate parent category"""
+        if value:
+            # Check if trying to set parent to self
+            if self.instance and value.id == self.instance.id:
+                raise serializers.ValidationError("A category cannot be its own parent.")
+            
+            # Check for circular references
+            if self.instance:
+                parent = value
+                while parent is not None:
+                    if parent.id == self.instance.id:
+                        raise serializers.ValidationError("Circular reference detected in category hierarchy.")
+                    parent = parent.parent
+        return value
     
     def create(self, validated_data):
         # Auto-generate slug
@@ -111,106 +138,63 @@ class BrandCreateUpdateSerializer(serializers.ModelSerializer):
 # ==================== PRODUCT IMAGE SERIALIZERS ====================
 
 class ProductImageSerializer(serializers.ModelSerializer):
-    """Serializer for product images"""
+    """Serializer for product images""" 
     class Meta:
         model = ProductImage
         fields = ['id', 'image', 'alt_text', 'is_primary', 'order']
 
 
-# ==================== VARIANT SERIALIZERS ====================
-
-class ProductVariantTypeSerializer(serializers.ModelSerializer):
-    """Serializer for variant types"""
-    
-    class Meta:
-        model = ProductVariantType
-        fields = ['id', 'name', 'slug', 'order']
-
-
-class ProductVariantValueSerializer(serializers.ModelSerializer):
-    """Serializer for variant values"""
-    type_name = serializers.CharField(source='variant_type.name', read_only=True)
-    
-    class Meta:
-        model = ProductVariantValue
-        fields = ['id', 'variant_type', 'value', 'slug', 'color_code', 'type_name', 'order']
-    
-    def create(self, validated_data):
-        # Auto-generate slug
-        if 'slug' not in validated_data:
-            validated_data['slug'] = slugify(validated_data['value'])
-        return super().create(validated_data)
-
-
-class ProductVariantSerializer(serializers.ModelSerializer):
-    """Serializer for product variants"""
-    variant_values = ProductVariantValueSerializer(many=True, read_only=True)
-    images = ProductImageSerializer(many=True, read_only=True)
-    display_name = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = ProductVariant
-        fields = [
-            'id', 'sku', 'variant_values', 'price', 'compare_price',
-            'stock_quantity', 'images', 'is_active', 'display_name'
-        ]
-    
-    def get_display_name(self, obj):
-        """Get formatted variant name"""
-        values = obj.variant_values.all()
-        value_str = ", ".join([f"{v.variant_type.name}: {v.value}" for v in values])
-        return value_str
-
-
 # ==================== PRODUCT SERIALIZERS ====================
 
+class SizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = ['id', 'name']
+
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ['id', 'name']
+
 class ProductListSerializer(serializers.ModelSerializer):
-    """Simplified serializer for product listings"""
     category_name = serializers.CharField(source='category.name', read_only=True)
     brand_name = serializers.CharField(source='brand.name', read_only=True)
-    primary_image = serializers.SerializerMethodField()
+    product_images = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
-    has_variants = serializers.SerializerMethodField()
-    
+    sizes = SizeSerializer(many=True, read_only=True)
+    colors = ColorSerializer(many=True, read_only=True)
+    material = serializers.CharField(read_only=True)
+
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'slug', 'sku', 'price', 'sale_price',
-            'category_name', 'brand_name', 'primary_image',
+            'category_name', 'brand_name', 'product_images',
             'rating_average', 'rating_count', 'discount_percentage',
-            'stock_quantity', 'is_featured', 'has_variants'
+            'stock_quantity', 'is_featured', 'sizes', 'colors', 'material'
         ]
-    
-    def get_primary_image(self, obj):
-        """Get primary product image"""
-        primary = obj.images.filter(is_primary=True).first()
-        if primary:
-            return ProductImageSerializer(primary).data
-        first_image = obj.images.first()
-        if first_image:
-            return ProductImageSerializer(first_image).data
+
+    def get_product_images(self, obj):
+        all_images = obj.images.all()
+        if all_images:
+            return ProductImageSerializer(all_images, many=True).data
         return None
-    
+
     def get_discount_percentage(self, obj):
-        """Calculate discount percentage"""
         if obj.sale_price and obj.price > obj.sale_price:
             discount = ((obj.price - obj.sale_price) / obj.price) * 100
             return round(discount, 0)
         return None
-    
-    def get_has_variants(self, obj):
-        """Check if product has variants"""
-        return obj.variants.exists()
-
 
 class ProductDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer for single product view"""
     category = CategoryListSerializer(read_only=True)
     brand = BrandListSerializer(read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
-    variants = ProductVariantSerializer(many=True, read_only=True)
+    sizes = SizeSerializer(many=True, read_only=True)
+    colors = ColorSerializer(many=True, read_only=True)
+    material = serializers.CharField(read_only=True)
     discount_percentage = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Product
         fields = [
@@ -220,27 +204,26 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'track_inventory', 'allow_backorder', 'weight', 'length', 
             'width', 'height', 'is_featured', 'meta_title',
             'meta_description', 'meta_keywords', 'rating_average', 
-            'rating_count', 'images', 'variants', 'discount_percentage',
+            'rating_count', 'images', 'sizes', 'colors', 'material', 'discount_percentage',
             'created_at', 'updated_at', 'launched_at'
         ]
-    
+
     def get_discount_percentage(self, obj):
-        """Calculate discount percentage"""
         if obj.sale_price and obj.price > obj.sale_price:
             discount = ((obj.price - obj.sale_price) / obj.price) * 100
             return round(discount, 0)
         return None
 
-
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for creating/updating products"""
     images_data = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
         required=False
     )
     brand_name = serializers.CharField(required=False, write_only=True)
-    
+    sizes = serializers.PrimaryKeyRelatedField(queryset=Size.objects.all(), many=True, required=False)
+    colors = serializers.PrimaryKeyRelatedField(queryset=Color.objects.all(), many=True, required=False)
+
     class Meta:
         model = Product
         fields = [
@@ -249,68 +232,69 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             'sale_end_date', 'stock_quantity', 'track_inventory',
             'allow_backorder', 'weight', 'length', 'width', 'height',
             'is_featured', 'meta_title', 'meta_description', 'meta_keywords',
-            'images_data'
+            'images_data', 'sizes', 'colors', 'material'
         ]
-    
+
     def create(self, validated_data):
-        """Create product with images"""
         brand_name = validated_data.pop('brand_name', None)
         brand_id = validated_data.get('brand', None)
         images_data = validated_data.pop('images_data', [])
-        
-        # If brand_name is provided but brand_id is not, create a new brand
+        sizes = validated_data.pop('sizes', [])
+        colors = validated_data.pop('colors', [])
+
         if brand_name and not brand_id:
             brand, created = Brand.objects.get_or_create(
                 name=brand_name,
                 defaults={'slug': slugify(brand_name)}
             )
             validated_data['brand'] = brand
-        
-        # Create the product
+
         product = Product.objects.create(**validated_data)
-        
-        # Create product images
+        if sizes:
+            product.sizes.set(sizes)
+        if colors:
+            product.colors.set(colors)
+
         for index, image_data in enumerate(images_data):
             ProductImage.objects.create(
                 product=product,
                 image=image_data,
-                is_primary=(index == 0),  # First image is primary
+                is_primary=(index == 0),
                 order=index
             )
-        
         return product
-    
+
     def update(self, instance, validated_data):
-        """Update product and associated data"""
         brand_name = validated_data.pop('brand_name', None)
         images_data = validated_data.pop('images_data', None)
-        
-        # Handle brand creation if needed
+        sizes = validated_data.pop('sizes', None)
+        colors = validated_data.pop('colors', None)
+
         if brand_name and not validated_data.get('brand'):
             brand, created = Brand.objects.get_or_create(
                 name=brand_name,
                 defaults={'slug': slugify(brand_name)}
             )
             validated_data['brand'] = brand
-        
-        # Update product fields
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-        
-        # Handle images if provided
+
+        if sizes is not None:
+            instance.sizes.set(sizes)
+        if colors is not None:
+            instance.colors.set(colors)
+
         if images_data is not None:
-            # Clear existing images
             instance.images.all().delete()
-            # Create new images
             for index, image_data in enumerate(images_data):
                 ProductImage.objects.create(
                     product=instance,
                     image=image_data,
-                    is_primary=(index == 0),  # First image is primary
+                    is_primary=(index == 0),
                     order=index
                 )
-        
         return instance
 
 

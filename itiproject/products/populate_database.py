@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'itiproject.settings')
 django.setup()
 
 # Import models after Django setup
-from products.models import Category, Brand, Product, ProductImage, ProductVariantType, ProductVariantValue, ProductVariant
+from products.models import Category, Brand, Product, ProductImage, Size, Color
 
 class DatabasePopulator:
     """Class to populate the database with product data"""

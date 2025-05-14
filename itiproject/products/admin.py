@@ -1,56 +1,98 @@
+
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db import models
+from django.forms import Textarea, TextInput, Select
 from .models import (
     Category, Brand, Product, ProductImage, 
-    ProductVariantType, ProductVariantValue, ProductVariant,
-    FlashSale, FlashSaleItem
+    Size, Color, FlashSale, FlashSaleItem
 )
 
 # ==================== INLINES ====================
 
 class CategoryInline(admin.TabularInline):
     model = Category
-    fields = ['name', 'is_active']
+    fields = ['name', 'is_active', 'image']
     extra = 0
     show_change_link = True
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    fields = ['image', 'alt_text', 'is_primary', 'order']
+    fields = ['image', 'alt_text', 'is_primary', 'order', 'image_preview']
+    readonly_fields = ['image_preview']
     extra = 1
     show_change_link = True
-
-class ProductVariantInline(admin.TabularInline):
-    model = ProductVariant
-    fields = ['sku', 'price', 'stock_quantity', 'is_active']
-    extra = 0
-    show_change_link = True
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 100px; max-width: 100px;" />', obj.image.url)
+        return "-"
 
 class FlashSaleItemInline(admin.TabularInline):
     model = FlashSaleItem
-    fields = ['product', 'discount_percentage', 'quantity_limit']
+    fields = ['product', 'discount_percentage', 'quantity_limit', 'quantity_sold']
     extra = 1
     show_change_link = True
+    autocomplete_fields = ['product']
 
 # ==================== MODEL ADMINS ====================
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'parent', 'is_active', 'product_count']
+    list_display = ['name', 'parent', 'is_active', 'product_count', 'display_image']
     list_filter = ['is_active', 'parent']
     search_fields = ['name']
     prepopulated_fields = {'slug': ('name',)}
     inlines = [CategoryInline]
+    readonly_fields = ['display_image', 'created_at', 'updated_at']
+    autocomplete_fields = ['parent']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'parent', 'is_active')
+        }),
+        ('Image', {
+            'fields': ('image', 'display_image')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
     
     def product_count(self, obj):
         return obj.products.count()
     product_count.short_description = 'Products'
+
+    def display_image(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px;" />', obj.image.url)
+        return "-"
+    display_image.short_description = 'Image Preview'
+    
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        return queryset, use_distinct
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
     list_display = ['name', 'product_count', 'display_image']
     search_fields = ['name']
     prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ['display_image', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug')
+        }),
+        ('Image', {
+            'fields': ('image', 'display_image')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
     
     def product_count(self, obj):
         return obj.products.count()
@@ -58,9 +100,31 @@ class BrandAdmin(admin.ModelAdmin):
     
     def display_image(self, obj):
         if obj.image:
-            return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px;" />', obj.image.url)
         return "-"
-    display_image.short_description = 'Logo'
+    display_image.short_description = 'Logo Preview'
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'product_count']
+    search_fields = ['name']
+    
+    def product_count(self, obj):
+        return obj.products.count()
+    product_count.short_description = 'Used in Products'
+
+@admin.register(Color)
+class ColorAdmin(admin.ModelAdmin):
+    list_display = ['name', 'color_preview', 'product_count']
+    search_fields = ['name']
+    
+    def color_preview(self, obj):
+        return format_html('<div style="background-color: {}; width: 30px; height: 30px; border: 1px solid #000;"></div>', obj.name)
+    color_preview.short_description = 'Color'
+    
+    def product_count(self, obj):
+        return obj.products.count()
+    product_count.short_description = 'Used in Products'
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -69,12 +133,15 @@ class ProductAdmin(admin.ModelAdmin):
         'sale_price', 'stock_status', 'is_featured', 'display_image'
     ]
     list_filter = [
-        'category', 'brand', 'is_featured', 'created_at'
+        'category', 'brand', 'sizes', 'colors', 'is_featured', 'created_at'
     ]
     search_fields = ['name', 'sku', 'description']
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ['created_at', 'updated_at', 'rating_average', 'rating_count']
-    inlines = [ProductImageInline, ProductVariantInline]
+    readonly_fields = ['created_at', 'updated_at', 'rating_average', 'rating_count', 'display_image']
+    inlines = [ProductImageInline]
+    filter_horizontal = ['sizes', 'colors']
+    autocomplete_fields = ['category', 'brand']
+    save_on_top = True
     
     fieldsets = (
         ('Basic Information', {
@@ -82,6 +149,9 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('Categorization', {
             'fields': ('category', 'brand')
+        }),
+        ('Product Options', {
+            'fields': ('sizes', 'colors', 'material')
         }),
         ('Pricing', {
             'fields': ('price', 'sale_price', 'sale_start_date', 'sale_end_date')
@@ -106,7 +176,15 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('rating_average', 'rating_count', 'created_at', 'updated_at', 'launched_at'),
             'classes': ('collapse',)
         }),
+        ('Preview', {
+            'fields': ('display_image',)
+        })
     )
+    
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows': 4, 'cols': 60})},
+        models.JSONField: {'widget': Textarea(attrs={'rows': 4, 'cols': 60})},
+    }
     
     def stock_status(self, obj):
         if obj.track_inventory:
@@ -122,14 +200,13 @@ class ProductAdmin(admin.ModelAdmin):
     def display_image(self, obj):
         primary = obj.images.filter(is_primary=True).first()
         if primary:
-            return format_html('<img src="{}" width="50" height="50" />', primary.image.url)
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px;" />', primary.image.url)
         first_image = obj.images.first()
         if first_image:
-            return format_html('<img src="{}" width="50" height="50" />', first_image.image.url)
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px;" />', first_image.image.url)
         return "-"
-    display_image.short_description = 'Image'
+    display_image.short_description = 'Image Preview'
     
-    # For bulk actions
     actions = ['mark_featured', 'mark_not_featured']
     
     def mark_featured(self, request, queryset):
@@ -145,40 +222,14 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_display = ['product', 'display_image', 'is_primary', 'order']
     list_filter = ['is_primary']
     search_fields = ['product__name', 'alt_text']
+    autocomplete_fields = ['product']
+    readonly_fields = ['display_image']
     
     def display_image(self, obj):
         if obj.image:
-            return format_html('<img src="{}" width="100" height="100" />', obj.image.url)
+            return format_html('<img src="{}" style="max-height: 150px; max-width: 150px;" />', obj.image.url)
         return "-"
-    display_image.short_description = 'Image'
-
-@admin.register(ProductVariantType)
-class ProductVariantTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'order']
-    search_fields = ['name']
-    prepopulated_fields = {'slug': ('name',)}
-
-@admin.register(ProductVariantValue)
-class ProductVariantValueAdmin(admin.ModelAdmin):
-    list_display = ['value', 'variant_type', 'color_display', 'order']
-    list_filter = ['variant_type']
-    search_fields = ['value', 'variant_type__name']
-    
-    def color_display(self, obj):
-        if obj.color_code:
-            return format_html(
-                '<div style="background-color: {}; width: 20px; height: 20px; border: 1px solid #000;"></div>',
-                obj.color_code
-            )
-        return "-"
-    color_display.short_description = 'Color'
-
-@admin.register(ProductVariant)
-class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ['product', 'sku', 'price', 'stock_quantity', 'is_active']
-    list_filter = ['is_active']
-    search_fields = ['product__name', 'sku']
-    filter_horizontal = ['variant_values', 'images']
+    display_image.short_description = 'Image Preview'
 
 @admin.register(FlashSale)
 class FlashSaleAdmin(admin.ModelAdmin):
@@ -187,6 +238,20 @@ class FlashSaleAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
     inlines = [FlashSaleItemInline]
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'description', 'is_active')
+        }),
+        ('Schedule', {
+            'fields': ('start_time', 'end_time')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
     
     def item_count(self, obj):
         return obj.items.count()
@@ -197,3 +262,4 @@ class FlashSaleItemAdmin(admin.ModelAdmin):
     list_display = ['product', 'flash_sale', 'discount_percentage', 'quantity_limit', 'quantity_sold']
     list_filter = ['flash_sale']
     search_fields = ['product__name', 'flash_sale__name']
+    autocomplete_fields = ['product', 'flash_sale']

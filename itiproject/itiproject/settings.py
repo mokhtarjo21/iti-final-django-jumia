@@ -51,6 +51,10 @@ EMAIL_HOST_PASSWORD = 'mjjj sybs oeqx vzxu' # your email password
 DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
 ######################################################
 
+# this filed is for api documentation
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
@@ -146,6 +150,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# adding media folder 
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

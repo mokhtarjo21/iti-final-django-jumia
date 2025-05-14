@@ -22,7 +22,7 @@ class Category(models.Model):
         related_name='children'
     )
 
-    image = models.ImageField(upload_to='media/category_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='category_images/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -65,7 +65,7 @@ class Brand(models.Model):
     slug = models.SlugField(unique=True, max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='media/brand_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='brand_images/', blank=True, null=True)
     class Meta:
         ordering = ['name']
         indexes = [
@@ -75,6 +75,40 @@ class Brand(models.Model):
     def __str__(self):
         return self.name
 
+
+class Size(models.Model):
+    SIZE_CHOICES = [
+        ("XS", "XS"),
+        ("S", "S"),
+        ("M", "M"),
+        ("L", "L"),
+        ("XL", "XL"),
+        ("XXL", "XXL"),
+        ("XXXL", "XXXL"),
+    ]
+    name = models.CharField(max_length=10, choices=SIZE_CHOICES, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Color(models.Model):
+    COLOR_CHOICES = [
+        ("Red", "Red"),
+        ("Blue", "Blue"),
+        ("Green", "Green"),
+        ("Black", "Black"),
+        ("White", "White"),
+        ("Yellow", "Yellow"),
+        ("Orange", "Orange"),
+        ("Purple", "Purple"),
+        ("Gray", "Gray"),
+        ("Brown", "Brown"),
+    ]
+    name = models.CharField(max_length=20, choices=COLOR_CHOICES, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):
@@ -158,6 +192,11 @@ class Product(models.Model):
     )
     rating_count = models.IntegerField(default=0)
     
+    # New fields
+    sizes = models.ManyToManyField(Size, blank=True, related_name='products')
+    colors = models.ManyToManyField(Color, blank=True, related_name='products')
+    material = models.CharField(max_length=100, blank=True)
+    
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -198,7 +237,7 @@ class ProductImage(models.Model):
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image = models.ImageField(upload_to='products/')
+    image = models.ImageField(upload_to='product_images/')
     alt_text = models.CharField(max_length=200, blank=True)
     is_primary = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
@@ -219,85 +258,6 @@ class ProductImage(models.Model):
             ).exclude(pk=self.pk).update(is_primary=False)
         super().save(*args, **kwargs)
 
-
-class ProductVariantType(models.Model):
-    """Types of variants (e.g., Size, Color)"""
-    name = models.CharField(max_length=100)
-
-    slug = models.SlugField(unique=True)
-    order = models.IntegerField(default=0)
-
-    class Meta:
-        ordering = ['order', 'name']
-
-    def __str__(self):
-        return self.name
-
-
-class ProductVariantValue(models.Model):
-    """Possible values for variant types"""
-    variant_type = models.ForeignKey(
-        ProductVariantType,
-        on_delete=models.CASCADE,
-        related_name='values'
-    )
-    value = models.CharField(max_length=100)
-
-    slug = models.SlugField()
-    color_code = models.CharField(
-        max_length=20, 
-        blank=True,
-        help_text="color variants"
-    )
-    order = models.IntegerField(default=0)
-
-    class Meta:
-        ordering = ['order', 'value']
-        unique_together = [['variant_type', 'slug']]
-
-    def __str__(self):
-        return f"{self.variant_type.name}: {self.value}"
-
-
-class ProductVariant(models.Model):
-    """Product variants with different attributes"""
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        related_name='variants'
-    )
-    sku = models.CharField(max_length=100, unique=True)
-    variant_values = models.ManyToManyField(ProductVariantValue)
-    
-    # Pricing
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    compare_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2,
-        null=True, 
-        blank=True
-    )
-    
-    # Inventory
-    stock_quantity = models.IntegerField(default=0)
-    
-    # Images
-    images = models.ManyToManyField(ProductImage, blank=True)
-    
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['product', 'is_active']),
-            models.Index(fields=['sku']),
-        ]
-
-    def __str__(self):
-        values = self.variant_values.all()
-        value_str = ", ".join([f"{v.variant_type.name}: {v.value}" for v in values])
-        return f"{self.product.name} - {value_str}"
 
 
 class FlashSale(models.Model):
