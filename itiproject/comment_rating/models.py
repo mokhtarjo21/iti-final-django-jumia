@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from users.models import User
-from product.models import Product
+from products.models import Product
 
 from django.core.exceptions import ValidationError  
 
@@ -18,7 +18,7 @@ class Comment(models.Model):
   
     
     def __str__(self):
-        return f"Comment by {self.user.fname} {self.user.lname} on {self.product.title}"
+        return f"Comment by {self.user.first_name} {self.user.last_name} on {self.product.name}"
 
 
 class Rating(models.Model):
