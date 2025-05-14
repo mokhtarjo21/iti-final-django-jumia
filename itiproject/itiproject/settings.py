@@ -35,6 +35,28 @@ CORS_ALLOWED_ORIGINS = [
 AUTH_USER_MODEL = 'users.User'
 # Application definition
 
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False  # ليتمكن frontend من قراءته
+SESSION_COOKIE_SAMESITE = 'strict'
+SESSION_COOKIE_SECURE = False  # اجعله True في الإنتاج مع HTTPS
+CSRF_COOKIE_SAMESITE = 'None'  # للسماح باستخدام الكوكيز عبر النطاقات
+CSRF_COOKIE_SECURE = False  # استخدم False إذا كنت تعمل على HTTP في بيئة التطوير
+# email management #################################
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "mokhtar.jo21@gmail.com"
+EMAIL_HOST_PASSWORD = 'mjjj sybs oeqx vzxu' # your email password
+DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
+######################################################
+
+# this filed is for api documentation
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
@@ -46,8 +68,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+
+    'products.apps.ProductsConfig',
+
     'comment_rating.apps.CommentRatingConfig',
     'home.apps.HomeConfig',
+
     
 ]
 
@@ -131,6 +157,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# adding media folder 
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
