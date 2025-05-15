@@ -15,7 +15,7 @@ class CategoryListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'image', 'product_count', 'children']
+        fields = ['id', 'name', 'slug', 'image', 'product_count', 'description', 'children']
     
     def get_children(self, obj):
         # Get all direct children of this category
@@ -24,7 +24,18 @@ class CategoryListSerializer(serializers.ModelSerializer):
         return CategoryListSerializer(children, many=True).data
     
     def get_product_count(self, obj):
-        return obj.products.count()
+        # Get all descendant categories (including the current category)
+        def get_descendant_categories(category):
+            descendants = [category]
+            for child in category.children.all():
+                descendants.extend(get_descendant_categories(child))
+            return descendants
+        
+        # Get all categories in the hierarchy
+        all_categories = get_descendant_categories(obj)
+        
+        # Count products across all categories
+        return Product.objects.filter(category__in=all_categories).count()
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):
@@ -37,12 +48,23 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             'id', 'name', 'slug', 'parent', 'parent_name', 
-            'image', 'is_active', 'created_at', 'updated_at',
-            'children', 'product_count'
+            'image', 'is_active', 'created_at', 'updated_at', 
+            'description', 'children', 'product_count'
         ]
     
     def get_product_count(self, obj):
-        return obj.products.count()
+        # Get all descendant categories (including the current category)
+        def get_descendant_categories(category):
+            descendants = [category]
+            for child in category.children.all():
+                descendants.extend(get_descendant_categories(child))
+            return descendants
+        
+        # Get all categories in the hierarchy
+        all_categories = get_descendant_categories(obj)
+        
+        # Count products across all categories
+        return Product.objects.filter(category__in=all_categories).count()
 
 
 class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
@@ -55,7 +77,7 @@ class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        fields = ['name', 'parent', 'image', 'is_active']
+        fields = ['name', 'parent', 'image', 'is_active', 'description']
     
     def validate_parent(self, value):
         """Validate parent category"""

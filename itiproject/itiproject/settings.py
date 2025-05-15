@@ -54,6 +54,7 @@ DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
 # this filed is for api documentation
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
 }
 INSTALLED_APPS = [
     'rest_framework',
