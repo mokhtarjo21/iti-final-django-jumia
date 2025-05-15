@@ -6,6 +6,8 @@ from .serializers import (
     ProductListSerializer, CategoryListSerializer, CategoryDetailSerializer, CategoryCreateUpdateSerializer,
     ProductCreateUpdateSerializer)
 from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 
 # Create your views here.
 
@@ -18,14 +20,40 @@ def get_descendant_ids(category):
 
 class CategoryProductsView(APIView):
     def get(self, request, slug):
-        # Get the category by slug
-        category = Category.objects.get(slug=slug)
-        # Get all descendant category IDs
-        category_ids = get_descendant_ids(category)
-        # Get all products in these categories
-        products = Product.objects.filter(category_id__in=category_ids)
-        serializer = ProductListSerializer(products, many=True)
-        return Response(serializer.data)
+        try:
+            category = Category.objects.get(slug=slug)
+            category_ids = get_descendant_ids(category)
+            products = Product.objects.filter(category_id__in=category_ids)
+
+            # Apply filters (all in DB, not Python)
+            brand = request.GET.get('brand')
+            if brand:
+                brand_names = brand.split(',')
+                products = products.filter(brand__name__in=brand_names)
+
+            color = request.GET.get('color')
+            if color:
+                color_names = color.split(',')
+                products = products.filter(colors__name__in=color_names)
+
+            min_price = request.GET.get('min_price')
+            if min_price:
+                products = products.filter(price__gte=min_price)
+            max_price = request.GET.get('max_price')
+            if max_price:
+                products = products.filter(price__lte=max_price)
+
+            products = products.distinct()  # Avoid duplicates if filtering by M2M
+
+            # Pagination
+            paginator = PageNumberPagination()
+            paginator.page_size = 10
+            paginated_products = paginator.paginate_queryset(products, request)
+            serializer = ProductListSerializer(paginated_products, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found"}, status=404)
 
 # List all categories as a tree
 class CategoryTreeView(generics.ListAPIView):
