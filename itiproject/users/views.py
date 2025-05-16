@@ -6,7 +6,7 @@ from django.conf import settings
 from django.utils.timezone import now 
 from django.contrib.auth.models import AnonymousUser
 from django.views import View
-from users.models import User ,User_active
+from users.models import *
 import random
 import string
 from datetime import datetime, timedelta
@@ -28,7 +28,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-
+from django.views.decorators.csrf import csrf_exempt
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -54,6 +54,16 @@ class check_email(APIView):
 
         return Response({'user': '0'}, status=status.HTTP_200_OK)
 
+class check_vendor(APIView):        
+    def post(self,request):
+        email = request.data.get('email')
+        exists = User.objects.filter(email=email).exists()
+        if exists:
+            user = User.objects.get(email=email)
+            stuf = user.is_staff
+            if stuf:
+                return Response({'user': '1'}, status=status.HTTP_200_OK)
+        return Response({'user': '0'}, status=status.HTTP_200_OK)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
@@ -94,6 +104,35 @@ class RegisterView(APIView):
 
        # hashed_password = make_password(password)
         User.objects.create(email=email)
+        user = User.objects.get(email=email)
+
+        activation_code = ''.join(random.choices(string.digits, k=4))
+        User_active.objects.create(user=user, active=activation_code)
+        send(email)
+        #token, created = Token.objects.get_or_create(user=user)
+
+        return Response({'state': 'done'}, status=status.HTTP_201_CREATED)
+class RegisterVendor(APIView):
+    def post(self, request):
+   
+        email = request.data.get('email')
+        
+        
+        print("Email:", email)
+
+        if not email :
+            
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if User_active.objects.filter(user=user).exists():
+                send(email)
+       
+            return Response({'error': 'Email already exists.'}, status=status.HTTP_200_OK)
+
+       # hashed_password = make_password(password)
+        User.objects.create(email=email, is_staff=True)
         user = User.objects.get(email=email)
 
         activation_code = ''.join(random.choices(string.digits, k=4))
@@ -195,7 +234,10 @@ class userSaveInfo(APIView):
     
 
     def post(self, request):
-        user = User.objects.get(email=request.data.get('email'))
+        user = User.objects.get(email=request.data.get('email')) 
+        print("User:", user)
+        
+            
         data = request.data
 
         user.first_name = data.get('firstName', user.first_name)
@@ -215,7 +257,20 @@ class userSaveInfo(APIView):
 
         if 'picture' in request.FILES:
             user.picture = request.FILES['picture']
-
+        if 'accountType' in data:
+            accountType = data['accountType']
+            shopName = data.get('shopName')
+            shippingZone = data.get('shippingZone')
+            referralSource = data.get('referralSource')
+            Vendor.objects.update_or_create(
+                user=user,
+                defaults={
+                    'accountType': accountType,
+                    'shopName': shopName,
+                    'shippingZone': shippingZone,
+                    'referralSource': referralSource
+                }
+            )
         user.save()
 
         return Response({'message': 'User information updated successfully.'}, status=status.HTTP_200_OK)
