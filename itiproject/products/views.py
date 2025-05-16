@@ -47,7 +47,7 @@ class CategoryProductsView(APIView):
 
             # Pagination
             paginator = PageNumberPagination()
-            paginator.page_size = 10
+            paginator.page_size = 4
             paginated_products = paginator.paginate_queryset(products, request)
             serializer = ProductListSerializer(paginated_products, many=True)
             return paginator.get_paginated_response(serializer.data)
