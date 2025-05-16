@@ -190,3 +190,32 @@ class DeleteUserView(APIView):
 
         user.delete()
         return Response({'message': 'Your account has been deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+class userSaveInfo(APIView):
+    
+
+    def post(self, request):
+        user = User.objects.get(email=request.data.get('email'))
+        data = request.data
+
+        user.first_name = data.get('firstName', user.first_name)
+        user.last_name = data.get('lastName', user.last_name)
+        user.Birthdate = data.get('dob', user.Birthdate)
+       
+        user.phone = data.get('phone', user.phone)
+        user.address = data.get('address', user.address)
+        user.city = data.get('city', user.city)
+        user.countrycode = data.get('countrycode', user.countrycode)
+        
+
+        if 'password' in data:
+            password = data['password']
+            if password:
+                user.password = make_password(password)
+
+        if 'picture' in request.FILES:
+            user.picture = request.FILES['picture']
+
+        user.save()
+
+        return Response({'message': 'User information updated successfully.'}, status=status.HTTP_200_OK)
