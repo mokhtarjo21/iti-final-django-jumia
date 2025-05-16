@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     CategoryProductsView, CategoryTreeView, CategoryDetailView, CategoryDetailBySlugView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView,
-    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView,
+    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductSearchView, SearchSuggestionsView
 )
 
 urlpatterns = [
@@ -27,4 +27,7 @@ urlpatterns = [
     path('products/<uuid:pk>/update/', ProductUpdateView.as_view(), name='product-update'),
     path('products/<uuid:pk>/delete/', ProductDeleteView.as_view(), name='product-delete'),
 
+    # Search endpoints
+    path('search/', ProductSearchView.as_view(), name='product-search'),
+    path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
 ]

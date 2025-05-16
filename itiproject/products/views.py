@@ -1,12 +1,14 @@
 from django.shortcuts import render
+from django.db.models import Q
+from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Category, Product
+from rest_framework.pagination import PageNumberPagination
+from .models import Category, Product, Brand
 from .serializers import (
     ProductListSerializer, CategoryListSerializer, CategoryDetailSerializer, CategoryCreateUpdateSerializer,
     ProductCreateUpdateSerializer)
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 
 # Create your views here.
@@ -113,3 +115,101 @@ class ProductDeleteView(generics.DestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductCreateUpdateSerializer
     lookup_field = 'pk'
+
+class ProductSearchView(APIView):
+    def get(self, request):
+        # Get the search query from URL parameters
+        search_query = request.GET.get('q', '')
+        
+        if not search_query:
+            return Response({"error": "Please provide a search query"}, status=400)
+            
+        # Search in multiple fields
+        products = Product.objects.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(brand__name__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        ).distinct()
+
+        # Apply filters similar to CategoryProductsView
+        brand = request.GET.get('brand')
+        if brand:
+            brand_names = brand.split(',')
+            products = products.filter(brand__name__in=brand_names)
+
+        color = request.GET.get('color')
+        if color:
+            color_names = color.split(',')
+            products = products.filter(colors__name__in=color_names)
+
+        min_price = request.GET.get('min_price')
+        if min_price:
+            products = products.filter(price__gte=min_price)
+        
+        max_price = request.GET.get('max_price')
+        if max_price:
+            products = products.filter(price__lte=max_price)
+
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 4  # Number of products per page
+        paginated_products = paginator.paginate_queryset(products, request)
+        serializer = ProductListSerializer(paginated_products, many=True)
+        
+        return paginator.get_paginated_response(serializer.data)
+
+class SearchSuggestionsView(APIView):
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        
+        if len(query) < 2:  # Only show suggestions after 2 characters
+            return Response([])
+
+        # Limit results per category
+        limit = 5
+
+        # Get matching products
+        products = Product.objects.filter(
+            name__icontains=query
+        ).values('id', 'name', 'slug')[:limit]
+
+        # Get matching categories
+        categories = Category.objects.filter(
+            name__icontains=query
+        ).values('id', 'name', 'slug')[:limit]
+
+        # Get matching brands
+        brands = Brand.objects.filter(
+            name__icontains=query
+        ).values('id', 'name', 'slug', 'image')[:limit]
+
+        # Prepare response with type identification
+        suggestions = {
+            'products': [{
+                'id': p['id'],
+                'name': p['name'],
+                'slug': p['slug'],
+                'type': 'product',
+                'url': f'/product/{p["slug"]}'
+            } for p in products],
+            
+            'categories': [{
+                'id': c['id'],
+                'name': c['name'],
+                'slug': c['slug'],
+                'type': 'category',
+                'url': f'/category/{c["slug"]}'
+            } for c in categories],
+            
+            'brands': [{
+                'id': b['id'],
+                'name': b['name'],
+                'slug': b['slug'],
+                'image': b['image'],
+                'type': 'brand',
+                'url': f'/brand/{b["slug"]}'
+            } for b in brands]
+        }
+
+        return Response(suggestions)
