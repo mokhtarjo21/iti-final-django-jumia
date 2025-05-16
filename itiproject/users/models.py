@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     email = models.EmailField(unique=True) 
-    password = models.CharField(max_length=256,blank=True)
+    password = models.CharField(max_length=256)
     facebook_acount = models.CharField(max_length=50, null=True,blank=True)
     Birthdate = models.DateTimeField(null=True, blank=True)
     countrycode = models.CharField(max_length=10, null=True, blank=True)
