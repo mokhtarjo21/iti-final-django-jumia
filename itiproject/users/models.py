@@ -46,4 +46,10 @@ class User_active(models.Model):
     active = models.CharField(max_length=50)
     time_send = models.DateTimeField(auto_now_add=True)
     
+class Vendor(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    accountType = models.CharField(max_length=50, null=True, blank=True)
+    shippingZone = models.CharField(max_length=50, null=True, blank=True)
+    referralSource = models.CharField(max_length=50, null=True, blank=True)
+    shopName = models.CharField(max_length=100, null=True, blank=True)
 # Create your models here.``
