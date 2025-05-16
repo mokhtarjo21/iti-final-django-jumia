@@ -26,14 +26,15 @@ SECRET_KEY = 'django-insecure-krnv7y%f%ho%2f*(rb53^f9#fkprpr#v(ot@toz*hc0ceeh3@^
 DEBUG = True
 
 ALLOWED_HOSTS = []
+#CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5173",
-    "http://localhost:5173",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
 ]
-# CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'users.User'
 # Application definition
+
 
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False  # ليتمكن frontend من قراءته
@@ -51,9 +52,16 @@ EMAIL_HOST_PASSWORD = 'mjjj sybs oeqx vzxu' # your email password
 DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
 ######################################################
 
+# this filed is for api documentation
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+}
+
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -62,9 +70,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+<<<<<<< HEAD
     #'products',
     'cart',
     #'orders'
+=======
+
+    'products.apps.ProductsConfig',
+
+    'comment_rating.apps.CommentRatingConfig',
+    'home.apps.HomeConfig',
+
+>>>>>>> 4c5ec7797cd86a188f6b81d34abc6ebd347e638b
     
 ]
 
@@ -78,6 +95,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'itiproject.urls'
@@ -148,8 +166,21 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# adding media folder 
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# settings.py
+
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
