@@ -30,8 +30,8 @@ class CategoryProductsView(APIView):
             # Apply filters (all in DB, not Python)
             brand = request.GET.get('brand')
             if brand:
-                brand_names = brand.split(',')
-                products = products.filter(brand__name__in=brand_names)
+                brand_slugs = brand.split(',')
+                products = products.filter(brand__slug__in=brand_slugs)
 
             color = request.GET.get('color')
             if color:
@@ -46,13 +46,36 @@ class CategoryProductsView(APIView):
                 products = products.filter(price__lte=max_price)
 
             products = products.distinct()  # Avoid duplicates if filtering by M2M
+            
+            # Get all unique brands for this category and its subcategories
+            category_brands = Brand.objects.filter(
+                products__category_id__in=category_ids
+            ).distinct().values('name', 'slug', 'image')
 
             # Pagination
             paginator = PageNumberPagination()
-            paginator.page_size = 4
+            paginator.page_size = 4  # You can adjust this or make it configurable
             paginated_products = paginator.paginate_queryset(products, request)
-            serializer = ProductListSerializer(paginated_products, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            
+            # Serialize the data
+            product_serializer = ProductListSerializer(paginated_products, many=True)
+            
+            # Get pagination data
+            pagination_data = {
+                'count': paginator.page.paginator.count,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
+                'current_page': paginator.page.number,
+                'total_pages': paginator.page.paginator.num_pages,
+            }
+            
+            response_data = {
+                'products': product_serializer.data,
+                'brands': list(category_brands),
+                'pagination': pagination_data
+            }
+
+            return Response(response_data)
 
         except Category.DoesNotExist:
             return Response({"error": "Category not found"}, status=404)
