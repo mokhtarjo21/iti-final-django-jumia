@@ -24,6 +24,16 @@ SECRET_KEY = 'django-insecure-krnv7y%f%ho%2f*(rb53^f9#fkprpr#v(ot@toz*hc0ceeh3@^
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_BLACKLIST_ENABLED": True,
+}
 
 ALLOWED_HOSTS = []
 #CORS_ALLOW_ALL_ORIGINS = True
@@ -62,6 +72,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
