@@ -6,7 +6,7 @@ from django.conf import settings
 from django.utils.timezone import now 
 from django.contrib.auth.models import AnonymousUser
 from django.views import View
-from users.models import User ,User_active
+from users.models import *
 import random
 import string
 from datetime import datetime, timedelta
@@ -28,6 +28,8 @@ from django.contrib.auth.hashers import check_password, make_password
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -54,6 +56,16 @@ class check_email(APIView):
 
         return Response({'user': '0'}, status=status.HTTP_200_OK)
 
+class check_vendor(APIView):        
+    def post(self,request):
+        email = request.data.get('email')
+        exists = User.objects.filter(email=email).exists()
+        if exists:
+            user = User.objects.get(email=email)
+            stuf = user.is_staff
+            if stuf:
+                return Response({'user': '1'}, status=status.HTTP_200_OK)
+        return Response({'user': '0'}, status=status.HTTP_200_OK)
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
@@ -94,6 +106,35 @@ class RegisterView(APIView):
 
        # hashed_password = make_password(password)
         User.objects.create(email=email)
+        user = User.objects.get(email=email)
+
+        activation_code = ''.join(random.choices(string.digits, k=4))
+        User_active.objects.create(user=user, active=activation_code)
+        send(email)
+        #token, created = Token.objects.get_or_create(user=user)
+
+        return Response({'state': 'done'}, status=status.HTTP_201_CREATED)
+class RegisterVendor(APIView):
+    def post(self, request):
+   
+        email = request.data.get('email')
+        
+        
+        print("Email:", email)
+
+        if not email :
+            
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if User_active.objects.filter(user=user).exists():
+                send(email)
+       
+            return Response({'error': 'Email already exists.'}, status=status.HTTP_200_OK)
+
+       # hashed_password = make_password(password)
+        User.objects.create(email=email, is_staff=True)
         user = User.objects.get(email=email)
 
         activation_code = ''.join(random.choices(string.digits, k=4))
@@ -146,19 +187,25 @@ class ActivationView(APIView):
             return Response({'message': 'Your account has been activated successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Activation code is invalid or expired.'}, status=status.HTTP_400_BAD_REQUEST)
- 
 
 
 class LogoutView(APIView):
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
-        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()  
+            return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        except TokenError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['post'])
+
+@api_view(['get'])
 def who(request):
     userw = request.user
     if isinstance(userw, AnonymousUser):
@@ -190,3 +237,48 @@ class DeleteUserView(APIView):
 
         user.delete()
         return Response({'message': 'Your account has been deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+class userSaveInfo(APIView):
+    
+
+    def post(self, request):
+        user = User.objects.get(email=request.data.get('email')) 
+        print("User:", user)
+        
+            
+        data = request.data
+
+        user.first_name = data.get('firstName', user.first_name)
+        user.last_name = data.get('lastName', user.last_name)
+        user.Birthdate = data.get('dob', user.Birthdate)
+       
+        user.phone = data.get('phone', user.phone)
+        user.address = data.get('address', user.address)
+        user.city = data.get('city', user.city)
+        user.countrycode = data.get('countrycode', user.countrycode)
+        
+
+        if 'password' in data:
+            password = data['password']
+            if password:
+                user.password = make_password(password)
+
+        if 'picture' in request.FILES:
+            user.picture = request.FILES['picture']
+        if 'accountType' in data:
+            accountType = data['accountType']
+            shopName = data.get('shopName')
+            shippingZone = data.get('shippingZone')
+            referralSource = data.get('referralSource')
+            Vendor.objects.update_or_create(
+                user=user,
+                defaults={
+                    'accountType': accountType,
+                    'shopName': shopName,
+                    'shippingZone': shippingZone,
+                    'referralSource': referralSource
+                }
+            )
+        user.save()
+
+        return Response({'message': 'User information updated successfully.'}, status=status.HTTP_200_OK)

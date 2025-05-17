@@ -24,13 +24,24 @@ SECRET_KEY = 'django-insecure-krnv7y%f%ho%2f*(rb53^f9#fkprpr#v(ot@toz*hc0ceeh3@^
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+from datetime import timedelta
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_BLACKLIST_ENABLED": True,
+}
 
 ALLOWED_HOSTS = []
-#CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",
-    "http://localhost:5500",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
 ]
+# CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'users.User'
 # Application definition
@@ -62,6 +73,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -97,6 +109,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 ROOT_URLCONF = 'itiproject.urls'
 
