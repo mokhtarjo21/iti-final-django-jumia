@@ -3,6 +3,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from users.models import User
 from products.models import Product
 
+from django.db.models import Avg
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from django.core.exceptions import ValidationError  
 
 class Comment(models.Model):
@@ -36,5 +40,16 @@ class Rating(models.Model):
     class Meta:
         # composite primay key to add one rating to one project
         unique_together = ('user', 'product')
+
+        
+@receiver(post_save, sender=Rating)
+def update_product_rating(sender, instance, **kwargs):
+    product = instance.product
+    average = product.ratings.aggregate(avg_rating=Avg('value'))['avg_rating'] or 0.0
+    product.rating_average = round(average, 2)
+    product.save()
+
+
+
 
 # Create your models here.
