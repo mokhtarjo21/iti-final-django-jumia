@@ -82,18 +82,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
-<<<<<<< HEAD
-    #'products',
-    'cart',
-    #'orders'
-=======
 
     'products.apps.ProductsConfig',
 
     'comment_rating.apps.CommentRatingConfig',
     'home.apps.HomeConfig',
+    'cart',
 
->>>>>>> 4c5ec7797cd86a188f6b81d34abc6ebd347e638b
     
 ]
 
