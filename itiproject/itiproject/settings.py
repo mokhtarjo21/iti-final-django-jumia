@@ -87,6 +87,7 @@ INSTALLED_APPS = [
 
     'comment_rating.apps.CommentRatingConfig',
     'home.apps.HomeConfig',
+    'cart',
 
     
 ]

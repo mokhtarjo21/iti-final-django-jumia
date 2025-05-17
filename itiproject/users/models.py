@@ -18,6 +18,9 @@ class User(AbstractUser):
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
 
+    is_vendor = models.BooleanField(default=False)  #added for order (Status)
+
+
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='custom_user_set',

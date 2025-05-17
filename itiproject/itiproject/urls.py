@@ -13,6 +13,8 @@ urlpatterns = [
     path('comment/api/',include('comment_rating.urls')),
 
     path('api/home/', include('home.urls')),
+    path('api/', include('cart.urls')),  # Mn3m
+
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
