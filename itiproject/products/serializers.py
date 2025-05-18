@@ -180,6 +180,7 @@ class ColorSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
+    category_slug = serializers.CharField(source='category.slug', read_only=True)
     brand_name = serializers.CharField(source='brand.name', read_only=True)
     product_images = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
@@ -191,7 +192,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'slug', 'sku', 'price', 'sale_price',
-            'category_name', 'brand_name', 'product_images',
+            'category_name', 'category_slug', 'brand_name', 'product_images',
             'rating_average', 'rating_count', 'discount_percentage',
             'stock_quantity', 'is_featured', 'sizes', 'colors', 'material'
         ]
