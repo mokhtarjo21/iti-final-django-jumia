@@ -46,6 +46,8 @@ CORS_ALLOWED_ORIGINS = [
 AUTH_USER_MODEL = 'users.User'
 # Application definition
 
+# for using pytest 
+DJANGO_SETTINGS_MODULE = 'itiproject.settings'
 
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False  # ليتمكن frontend من قراءته
