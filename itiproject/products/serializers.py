@@ -41,13 +41,14 @@ class CategoryListSerializer(serializers.ModelSerializer):
 class CategoryDetailSerializer(serializers.ModelSerializer):
     """Serializer for detailed category view"""
     parent_name = serializers.CharField(source='parent.name', read_only=True)
+    parent_slug = serializers.CharField(source='parent.slug', read_only=True)
     children = CategoryListSerializer(many=True, read_only=True, source='children.all')
     product_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Category
         fields = [
-            'id', 'name', 'slug', 'parent', 'parent_name', 
+            'id', 'name', 'slug', 'parent', 'parent_name', 'parent_slug', 
             'image', 'is_active', 'created_at', 'updated_at', 
             'description', 'children', 'product_count'
         ]
