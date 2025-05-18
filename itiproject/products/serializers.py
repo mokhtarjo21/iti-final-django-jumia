@@ -257,7 +257,11 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             'is_featured', 'meta_title', 'meta_description', 'meta_keywords',
             'images_data', 'sizes', 'colors', 'material'
         ]
-
+    # validate sale price is less than price
+    def validate(self, data):
+        if data.get('sale_price') and data.get('sale_price') >= data.get('price', 0):
+            raise serializers.ValidationError("Sale price must be less than original price.")
+        return data
     def create(self, validated_data):
         brand_name = validated_data.pop('brand_name', None)
         brand_id = validated_data.get('brand', None)
