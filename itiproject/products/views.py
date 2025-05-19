@@ -282,6 +282,16 @@ class ProductListView(APIView):
             except ValueError:
                 pass
             
+        # Get best sellers
+        best_sellers = request.GET.get('best_sellers')
+        if best_sellers:
+            try:
+                limit = int(best_sellers)
+                # Order by quantity_sold field
+                products = products.order_by('-quantity_sold')[:limit]
+            except ValueError:
+                pass
+            
         # Apply filters
         brand = request.GET.get('brand')
         if brand:
