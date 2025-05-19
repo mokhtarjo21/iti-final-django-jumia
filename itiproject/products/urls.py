@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     CategoryProductsView, CategoryTreeView, CategoryDetailView, CategoryDetailBySlugView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView,
-    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductSearchView, SearchSuggestionsView
+    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductListView, SearchSuggestionsView
 )
 
 urlpatterns = [
@@ -19,6 +19,8 @@ urlpatterns = [
     path('category/<int:pk>/delete/', CategoryDeleteView.as_view(), name='category-delete'),
 
     # Product endpoints
+    # ProductListView for all products, used to search for products by name, description, or category
+    path('products/', ProductListView.as_view(), name='product-list'),
     # get product detail by id
     path('products/<uuid:pk>/', ProductDetailView.as_view(), name='product-detail'),
     # post to create product by admin
@@ -28,6 +30,7 @@ urlpatterns = [
     path('products/<uuid:pk>/delete/', ProductDeleteView.as_view(), name='product-delete'),
 
     # Search endpoints
-    path('search/', ProductSearchView.as_view(), name='product-search'),
+    # the same as products/ but front end should include search query q=xyz in url 
+    path('search/', ProductListView.as_view(), name='product-list'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
 ]

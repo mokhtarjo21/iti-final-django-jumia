@@ -87,6 +87,12 @@ class Size(models.Model):
         ("XXXL", "XXXL"),
     ]
     name = models.CharField(max_length=10, choices=SIZE_CHOICES, unique=True)
+    slug = models.SlugField(unique=True, max_length=10)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -106,7 +112,12 @@ class Color(models.Model):
         ("Brown", "Brown"),
     ]
     name = models.CharField(max_length=20, choices=COLOR_CHOICES, unique=True)
+    slug = models.SlugField(unique=True, max_length=20)
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
     def __str__(self):
         return self.name
 
@@ -154,6 +165,7 @@ class Product(models.Model):
     
     # Inventory
     stock_quantity = models.IntegerField(default=0)
+    quantity_sold = models.IntegerField(default=0, null=True, blank=True)
     track_inventory = models.BooleanField(default=True)
     allow_backorder = models.BooleanField(default=False)
     
@@ -169,9 +181,10 @@ class Product(models.Model):
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
-    # Status flags
+    # jumia express
     is_featured = models.BooleanField(default=False)
-
+    # for filtering by sponsored productss
+    is_sponsored = models.BooleanField(default=False)
     
     # SEO
     meta_title = models.CharField(max_length=200, blank=True)

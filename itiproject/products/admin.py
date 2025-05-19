@@ -130,7 +130,8 @@ class ColorAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'sku', 'category', 'brand', 'price', 
-        'sale_price', 'stock_status', 'is_featured', 'display_image'
+        'sale_price', 'stock_status', 'is_featured', 'is_sponsored', 
+        'rating_average', 'rating_count' ,'display_image'
     ]
     list_filter = [
         'category', 'brand', 'sizes', 'colors', 'is_featured', 'created_at'
@@ -166,7 +167,8 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('specifications',)
         }),
         ('Status', {
-            'fields': ('is_featured',)
+            'fields': ('is_featured',),
+            'fields': ('is_sponsored',)
         }),
         ('SEO', {
             'fields': ('meta_title', 'meta_description', 'meta_keywords'),

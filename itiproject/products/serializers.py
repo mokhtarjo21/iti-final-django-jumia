@@ -41,13 +41,14 @@ class CategoryListSerializer(serializers.ModelSerializer):
 class CategoryDetailSerializer(serializers.ModelSerializer):
     """Serializer for detailed category view"""
     parent_name = serializers.CharField(source='parent.name', read_only=True)
+    parent_slug = serializers.CharField(source='parent.slug', read_only=True)
     children = CategoryListSerializer(many=True, read_only=True, source='children.all')
     product_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Category
         fields = [
-            'id', 'name', 'slug', 'parent', 'parent_name', 
+            'id', 'name', 'slug', 'parent', 'parent_name', 'parent_slug', 
             'image', 'is_active', 'created_at', 'updated_at', 
             'description', 'children', 'product_count'
         ]
@@ -180,6 +181,7 @@ class ColorSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
+    category_slug = serializers.CharField(source='category.slug', read_only=True)
     brand_name = serializers.CharField(source='brand.name', read_only=True)
     product_images = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
@@ -191,9 +193,10 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'slug', 'sku', 'price', 'sale_price',
-            'category_name', 'brand_name', 'product_images',
+            'category_name', 'category_slug', 'brand_name', 'product_images',
             'rating_average', 'rating_count', 'discount_percentage',
-            'stock_quantity', 'is_featured', 'sizes', 'colors', 'material'
+            'stock_quantity', 'quantity_sold', 'is_featured', 'is_sponsored', 'sizes', 'colors', 'material',
+            'description', 'specifications', 'updated_at'
         ]
 
     def get_product_images(self, obj):
@@ -256,7 +259,11 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             'is_featured', 'meta_title', 'meta_description', 'meta_keywords',
             'images_data', 'sizes', 'colors', 'material'
         ]
-
+    # validate sale price is less than price
+    def validate(self, data):
+        if data.get('sale_price') and data.get('sale_price') >= data.get('price', 0):
+            raise serializers.ValidationError("Sale price must be less than original price.")
+        return data
     def create(self, validated_data):
         brand_name = validated_data.pop('brand_name', None)
         brand_id = validated_data.get('brand', None)

@@ -75,14 +75,17 @@ class RateAPIView(APIView):
                 value=rate
             )
         return Response({'state': 'success'}, status=status.HTTP_201_CREATED)
-    def get(self, request, id):
-        rates = Rating.objects.filter(product=id)
+    def get(self, request, slug):
+        print(slug, 'slug')
+        rates = Rating.objects.filter(product=slug)
+        if not rates:
+            return JsonResponse([], safe=False, status=status.HTTP_200_OK)
         rate_list = []
         for rate in rates:
             user_profile = User.objects.get(id=rate.user.id)
             rate_list.append({
                 'id': rate.id,
-                'fname': user_profile.fname,
+                'first_name': user_profile.first_name,
                 'user_photo': user_profile.picture.url,
                 'rate': rate.value
             })

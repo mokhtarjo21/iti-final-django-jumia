@@ -59,55 +59,286 @@ class DatabasePopulator:
         categories_structure = {
             "Electronics": {
                 "children": {
-                    "Smartphones": ["Android Phones", "iPhones", "Budget Phones", "Gaming Phones"],
-                    "Laptops": ["Gaming Laptops", "Business Laptops", "Ultrabooks", "2-in-1 Laptops"],
-                    "Audio": ["Headphones", "Earbuds", "Speakers", "Soundbars"],
-                    "Cameras": ["DSLR", "Mirrorless", "Compact", "Action Cameras"],
-                    "Tablets": ["Android Tablets", "iPads", "E-readers", "Graphics Tablets"],
-                    "Gaming": ["Gaming Consoles", "Gaming Accessories", "VR Headsets", "Gaming Chairs"],
+                    "Smartphones": {
+                        "children": [
+                            "Android Phones",
+                            "iPhones",
+                            "Budget Phones",
+                            "Gaming Phones",
+                            "Foldable Phones",
+                            "Business Phones"
+                        ]
+                    },
+                    "Laptops": {
+                        "children": [
+                            "Gaming Laptops",
+                            "Business Laptops",
+                            "Ultrabooks",
+                            "2-in-1 Laptops",
+                            "Student Laptops",
+                            "Workstation Laptops"
+                        ]
+                    },
+                    "Audio": {
+                        "children": [
+                            "Headphones",
+                            "Earbuds",
+                            "Speakers",
+                            "Soundbars",
+                            "Home Theater",
+                            "Professional Audio"
+                        ]
+                    },
+                    "Cameras": {
+                        "children": [
+                            "DSLR",
+                            "Mirrorless",
+                            "Compact",
+                            "Action Cameras",
+                            "Video Cameras",
+                            "Security Cameras"
+                        ]
+                    },
+                    "Tablets": {
+                        "children": [
+                            "Android Tablets",
+                            "iPads",
+                            "E-readers",
+                            "Graphics Tablets",
+                            "Kids Tablets",
+                            "Professional Tablets"
+                        ]
+                    },
+                    "Gaming": {
+                        "children": [
+                            "Gaming Consoles",
+                            "Gaming Accessories",
+                            "VR Headsets",
+                            "Gaming Chairs",
+                            "Gaming Monitors",
+                            "Gaming Keyboards"
+                        ]
+                    }
                 }
             },
             "Fashion": {
                 "children": {
-                    "Men's Clothing": ["T-shirts", "Shirts", "Jeans", "Suits", "Hoodies", "Jackets"],
-                    "Women's Clothing": ["Dresses", "Tops", "Pants", "Skirts", "Blouses", "Coats"],
-                    "Shoes": ["Running Shoes", "Casual Shoes", "Formal Shoes", "Boots", "Sandals"],
-                    "Accessories": ["Bags", "Wallets", "Belts", "Watches", "Sunglasses", "Jewelry"],
-                    "Sportswear": ["Activewear", "Gym Clothing", "Sports Shoes", "Yoga Wear"],
+                    "Men's Clothing": {
+                        "children": [
+                            "T-shirts",
+                            "Shirts",
+                            "Jeans",
+                            "Suits",
+                            "Hoodies",
+                            "Jackets",
+                            "Pants",
+                            "Shorts",
+                            "Sweaters",
+                            "Formal Wear"
+                        ]
+                    },
+                    "Women's Clothing": {
+                        "children": [
+                            "Dresses",
+                            "Tops",
+                            "Pants",
+                            "Skirts",
+                            "Blouses",
+                            "Coats",
+                            "Sweaters",
+                            "Activewear",
+                            "Swimwear",
+                            "Lingerie"
+                        ]
+                    },
+                    "Shoes": {
+                        "children": [
+                            "Running Shoes",
+                            "Casual Shoes",
+                            "Formal Shoes",
+                            "Boots",
+                            "Sandals",
+                            "Sneakers",
+                            "Sports Shoes",
+                            "Heels",
+                            "Flats",
+                            "Slippers"
+                        ]
+                    },
+                    "Accessories": {
+                        "children": [
+                            "Bags",
+                            "Wallets",
+                            "Belts",
+                            "Watches",
+                            "Sunglasses",
+                            "Jewelry",
+                            "Hats",
+                            "Scarves",
+                            "Gloves",
+                            "Ties"
+                        ]
+                    },
+                    "Sportswear": {
+                        "children": [
+                            "Activewear",
+                            "Gym Clothing",
+                            "Sports Shoes",
+                            "Yoga Wear",
+                            "Swimwear",
+                            "Team Sports",
+                            "Outdoor Gear",
+                            "Fitness Accessories"
+                        ]
+                    }
                 }
             },
             "Home & Kitchen": {
                 "children": {
-                    "Furniture": ["Sofas", "Beds", "Tables", "Chairs", "Wardrobes", "TV Units"],
-                    "Kitchen Appliances": ["Refrigerators", "Microwaves", "Coffee Makers", "Blenders", "Ovens"],
-                    "Kitchenware": ["Cookware", "Cutlery", "Storage Containers", "Bakeware"],
-                    "Home Decor": ["Wall Art", "Rugs", "Cushions", "Lamps", "Curtains", "Vases"],
-                    "Bedding": ["Bed Sheets", "Pillows", "Blankets", "Comforters", "Mattresses"],
+                    "Furniture": {
+                        "children": [
+                            "Sofas",
+                            "Beds",
+                            "Tables",
+                            "Chairs",
+                            "Wardrobes",
+                            "TV Units",
+                            "Bookshelves",
+                            "Office Furniture",
+                            "Outdoor Furniture",
+                            "Kids Furniture"
+                        ]
+                    },
+                    "Kitchen Appliances": {
+                        "children": [
+                            "Refrigerators",
+                            "Microwaves",
+                            "Coffee Makers",
+                            "Blenders",
+                            "Ovens",
+                            "Dishwashers",
+                            "Mixers",
+                            "Toasters",
+                            "Food Processors",
+                            "Air Fryers"
+                        ]
+                    },
+                    "Kitchenware": {
+                        "children": [
+                            "Cookware",
+                            "Cutlery",
+                            "Storage Containers",
+                            "Bakeware",
+                            "Kitchen Tools",
+                            "Dinnerware",
+                            "Drinkware",
+                            "Kitchen Gadgets",
+                            "Kitchen Storage",
+                            "Kitchen Linens"
+                        ]
+                    },
+                    "Home Decor": {
+                        "children": [
+                            "Wall Art",
+                            "Rugs",
+                            "Cushions",
+                            "Lamps",
+                            "Curtains",
+                            "Vases",
+                            "Mirrors",
+                            "Clocks",
+                            "Photo Frames",
+                            "Decorative Items"
+                        ]
+                    },
+                    "Bedding": {
+                        "children": [
+                            "Bed Sheets",
+                            "Pillows",
+                            "Blankets",
+                            "Comforters",
+                            "Mattresses",
+                            "Duvets",
+                            "Bed Skirts",
+                            "Pillowcases",
+                            "Quilts",
+                            "Bed Covers"
+                        ]
+                    }
                 }
             },
             "Beauty & Personal Care": {
                 "children": {
-                    "Skincare": ["Moisturizers", "Cleansers", "Serums", "Sunscreen", "Face Masks"],
-                    "Makeup": ["Foundation", "Lipstick", "Eyeshadow", "Mascara", "Concealer"],
-                    "Haircare": ["Shampoo", "Conditioner", "Hair Oil", "Hair Styling", "Hair Treatment"],
-                    "Fragrances": ["Perfumes", "Deodorants", "Body Mists", "Cologne"],
-                    "Personal Care": ["Body Wash", "Body Lotion", "Hand Care", "Oral Care"],
-                }
-            },
-            "Sports & Outdoors": {
-                "children": {
-                    "Exercise & Fitness": ["Gym Equipment", "Yoga Mats", "Weights", "Fitness Trackers"],
-                    "Outdoor Recreation": ["Camping Gear", "Hiking Equipment", "Cycling", "Water Sports"],
-                    "Sports Equipment": ["Cricket", "Football", "Basketball", "Tennis", "Badminton"],
-                    "Athletic Clothing": ["Running Wear", "Compression Wear", "Sports Bras", "Athletic Shoes"],
-                }
-            },
-            "Books & Media": {
-                "children": {
-                    "Books": ["Fiction", "Non-fiction", "Educational", "Comics", "Children's Books"],
-                    "Movies & TV": ["DVDs", "Blu-ray", "Digital Downloads", "Box Sets"],
-                    "Music": ["CDs", "Vinyl Records", "Digital Music", "Musical Instruments"],
-                    "Gaming": ["Video Games", "Board Games", "Card Games", "Puzzles"],
+                    "Skincare": {
+                        "children": [
+                            "Moisturizers",
+                            "Cleansers",
+                            "Serums",
+                            "Sunscreen",
+                            "Face Masks",
+                            "Eye Care",
+                            "Acne Treatment",
+                            "Anti-aging",
+                            "Body Care",
+                            "Hand & Foot Care"
+                        ]
+                    },
+                    "Makeup": {
+                        "children": [
+                            "Foundation",
+                            "Lipstick",
+                            "Eyeshadow",
+                            "Mascara",
+                            "Concealer",
+                            "Blush",
+                            "Bronzer",
+                            "Eyeliner",
+                            "Makeup Brushes",
+                            "Makeup Sets"
+                        ]
+                    },
+                    "Haircare": {
+                        "children": [
+                            "Shampoo",
+                            "Conditioner",
+                            "Hair Oil",
+                            "Hair Styling",
+                            "Hair Treatment",
+                            "Hair Color",
+                            "Hair Tools",
+                            "Hair Accessories",
+                            "Hair Masks",
+                            "Hair Serums"
+                        ]
+                    },
+                    "Fragrances": {
+                        "children": [
+                            "Perfumes",
+                            "Deodorants",
+                            "Body Mists",
+                            "Cologne",
+                            "Fragrance Sets",
+                            "Room Fragrances",
+                            "Car Fragrances",
+                            "Essential Oils",
+                            "Scented Candles",
+                            "Aromatherapy"
+                        ]
+                    },
+                    "Personal Care": {
+                        "children": [
+                            "Body Wash",
+                            "Body Lotion",
+                            "Hand Care",
+                            "Oral Care",
+                            "Shaving",
+                            "Bath & Shower",
+                            "Feminine Care",
+                            "Men's Grooming",
+                            "Foot Care",
+                            "Travel Size"
+                        ]
+                    }
                 }
             }
         }
@@ -122,7 +353,7 @@ class DatabasePopulator:
             print(f"{'Created' if created else 'Found'} main category: {main_cat.name}")
             
             # Create subcategories
-            for sub_name, children in main_data["children"].items():
+            for sub_name, sub_data in main_data["children"].items():
                 # Create unique slug for subcategory
                 sub_slug = f"{main_slug}-{slugify(sub_name)}"
                 sub_cat, created = Category.objects.get_or_create(
@@ -133,7 +364,7 @@ class DatabasePopulator:
                 print(f"  {'Created' if created else 'Found'} subcategory: {sub_cat.name}")
                 
                 # Create third-level categories
-                for child_name in children:
+                for child_name in sub_data["children"]:
                     # Create unique slug for child category
                     child_slug = f"{sub_slug}-{slugify(child_name)}"
                     child_cat, created = Category.objects.get_or_create(
@@ -170,98 +401,109 @@ class DatabasePopulator:
         sizes = list(Size.objects.all())
         
         product_templates = [
-            # Electronics
+            # Electronics - Smartphones
             {
                 "category_name": "Android Phones",
-                "brand_names": ["Samsung", "Xiaomi", "OnePlus"],
+                "brand_names": ["Samsung", "Xiaomi", "OnePlus", "Google", "Motorola"],
                 "products": [
                     {"name": "Galaxy S23 Ultra", "price": 1199.99, "has_sizes": False, "has_colors": True},
                     {"name": "Mi 13 Pro", "price": 899.99, "has_sizes": False, "has_colors": True},
                     {"name": "OnePlus 11", "price": 699.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Pixel 7 Pro", "price": 899.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Edge 30 Ultra", "price": 799.99, "has_sizes": False, "has_colors": True},
                 ]
             },
             {
+                "category_name": "iPhones",
+                "brand_names": ["Apple"],
+                "products": [
+                    {"name": "iPhone 15 Pro Max", "price": 1199.99, "has_sizes": False, "has_colors": True},
+                    {"name": "iPhone 15 Pro", "price": 999.99, "has_sizes": False, "has_colors": True},
+                    {"name": "iPhone 15 Plus", "price": 899.99, "has_sizes": False, "has_colors": True},
+                    {"name": "iPhone 15", "price": 799.99, "has_sizes": False, "has_colors": True},
+                    {"name": "iPhone 14", "price": 699.99, "has_sizes": False, "has_colors": True},
+                ]
+            },
+            # Electronics - Laptops
+            {
                 "category_name": "Gaming Laptops",
-                "brand_names": ["Dell", "HP", "Asus"],
+                "brand_names": ["Dell", "HP", "Asus", "MSI", "Lenovo"],
                 "products": [
                     {"name": "Alienware m16", "price": 2499.99, "has_sizes": False, "has_colors": False},
                     {"name": "ROG Strix G16", "price": 1899.99, "has_sizes": False, "has_colors": False},
                     {"name": "Omen 16", "price": 1699.99, "has_sizes": False, "has_colors": False},
+                    {"name": "GE76 Raider", "price": 2299.99, "has_sizes": False, "has_colors": False},
+                    {"name": "Legion Pro 7", "price": 1999.99, "has_sizes": False, "has_colors": False},
                 ]
             },
-            {
-                "category_name": "Headphones",
-                "brand_names": ["Sony", "Apple", "Samsung"],
-                "products": [
-                    {"name": "WH-1000XM5", "price": 399.99, "has_sizes": False, "has_colors": True},
-                    {"name": "AirPods Max", "price": 549.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Galaxy Buds Pro", "price": 229.99, "has_sizes": False, "has_colors": True},
-                ]
-            },
-            # Fashion
+            # Fashion - Men's Clothing
             {
                 "category_name": "T-shirts",
-                "brand_names": ["Nike", "Adidas", "Gap"],
+                "brand_names": ["Nike", "Adidas", "Gap", "H&M", "Uniqlo"],
                 "products": [
                     {"name": "Classic Logo Tee", "price": 29.99, "has_sizes": True, "has_colors": True},
                     {"name": "Sport Performance Tee", "price": 39.99, "has_sizes": True, "has_colors": True},
                     {"name": "Vintage Graphic Tee", "price": 24.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Essential Crew Neck", "price": 19.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Premium Cotton Tee", "price": 34.99, "has_sizes": True, "has_colors": True},
                 ]
             },
             {
-                "category_name": "Running Shoes",
-                "brand_names": ["Nike", "Adidas", "New Balance"],
+                "category_name": "Jeans",
+                "brand_names": ["Levi's", "Wrangler", "Lee", "Calvin Klein", "Tommy Hilfiger"],
                 "products": [
-                    {"name": "Air Zoom Pegasus", "price": 129.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Ultraboost 22", "price": 179.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Fresh Foam 1080", "price": 159.99, "has_sizes": True, "has_colors": True},
+                    {"name": "501 Original Fit", "price": 69.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Classic Straight Fit", "price": 59.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Slim Fit Stretch", "price": 64.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Premium Denim", "price": 79.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Relaxed Fit", "price": 54.99, "has_sizes": True, "has_colors": True},
                 ]
             },
+            # Fashion - Women's Clothing
             {
                 "category_name": "Dresses",
-                "brand_names": ["Zara", "H&M", "Uniqlo"],
+                "brand_names": ["Zara", "H&M", "Uniqlo", "Forever 21", "Mango"],
                 "products": [
                     {"name": "Floral Summer Dress", "price": 49.99, "has_sizes": True, "has_colors": True},
                     {"name": "Little Black Dress", "price": 69.99, "has_sizes": True, "has_colors": False},
                     {"name": "Maxi Beach Dress", "price": 59.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Casual Wrap Dress", "price": 44.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Evening Gown", "price": 89.99, "has_sizes": True, "has_colors": True},
                 ]
             },
             # Home & Kitchen
             {
-                "category_name": "Coffee Makers",
-                "brand_names": ["Philips", "Cuisinart", "KitchenAid"],
-                "products": [
-                    {"name": "Espresso Machine Pro", "price": 299.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Drip Coffee Maker", "price": 79.99, "has_sizes": False, "has_colors": True},
-                    {"name": "French Press Deluxe", "price": 49.99, "has_sizes": False, "has_colors": False},
-                ]
-            },
-            {
                 "category_name": "Sofas",
-                "brand_names": ["IKEA"],
+                "brand_names": ["IKEA", "Ashley", "Pottery Barn", "West Elm", "Crate & Barrel"],
                 "products": [
                     {"name": "EKTORP 3-seat Sofa", "price": 599.99, "has_sizes": False, "has_colors": True},
                     {"name": "KIVIK Corner Sofa", "price": 899.99, "has_sizes": False, "has_colors": True},
                     {"name": "SÖDERHAMN Modular Sofa", "price": 799.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Modern Sectional", "price": 1299.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Leather Recliner Sofa", "price": 1499.99, "has_sizes": False, "has_colors": True},
                 ]
             },
-            # Beauty
+            # Beauty & Personal Care
             {
                 "category_name": "Moisturizers",
-                "brand_names": ["L'Oreal", "Neutrogena", "Clinique"],
+                "brand_names": ["L'Oreal", "Neutrogena", "Clinique", "CeraVe", "La Roche-Posay"],
                 "products": [
                     {"name": "Hydra-Boost Daily Moisturizer", "price": 24.99, "has_sizes": False, "has_colors": False},
                     {"name": "Anti-Aging Night Cream", "price": 49.99, "has_sizes": False, "has_colors": False},
                     {"name": "Oil-Free Face Lotion", "price": 19.99, "has_sizes": False, "has_colors": False},
+                    {"name": "Ceramide Moisturizing Cream", "price": 29.99, "has_sizes": False, "has_colors": False},
+                    {"name": "Hydrating Face Cream", "price": 34.99, "has_sizes": False, "has_colors": False},
                 ]
             },
             {
                 "category_name": "Lipstick",
-                "brand_names": ["MAC", "Maybelline", "L'Oreal"],
+                "brand_names": ["MAC", "Maybelline", "L'Oreal", "Revlon", "NYX"],
                 "products": [
                     {"name": "Matte Lipstick Collection", "price": 22.99, "has_sizes": False, "has_colors": True},
                     {"name": "Long-Lasting Lip Color", "price": 14.99, "has_sizes": False, "has_colors": True},
                     {"name": "Moisturizing Lipstick", "price": 18.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Liquid Lipstick", "price": 16.99, "has_sizes": False, "has_colors": True},
+                    {"name": "Satin Finish Lipstick", "price": 20.99, "has_sizes": False, "has_colors": True},
                 ]
             },
         ]
@@ -297,26 +539,26 @@ class DatabasePopulator:
                         sale_start = timezone.now() - timedelta(days=random.randint(0, 7))
                         sale_end = timezone.now() + timedelta(days=random.randint(7, 30))
                     
+                    # Generate realistic description based on category and product
+                    description = self.generate_product_description(category, product_data["name"], brand)
+                    
+                    # Generate specifications based on category
+                    specifications = self.generate_product_specifications(category, product_data["name"])
+                    
                     product = Product.objects.create(
                         name=f"{brand.name} {product_data['name']}",
                         slug=slugify(f"{brand.name}-{product_data['name']}-{sku}"),
                         sku=sku,
                         category=category,
                         brand=brand,
-                        description=f"High-quality {product_data['name']} from {brand.name}. "
-                                  f"This premium product combines style and functionality to meet your needs. "
-                                  f"Featuring the latest technology and design innovations.",
+                        description=description,
                         price=base_price,
                         sale_price=sale_price,
                         sale_start_date=sale_start,
                         sale_end_date=sale_end,
                         stock_quantity=random.randint(20, 200),
                         is_featured=random.random() < 0.2,  # 20% chance of being featured
-                        specifications={
-                            "warranty": f"{random.choice([1, 2, 3])} years",
-                            "material": random.choice(["Premium", "Standard", "Eco-friendly"]),
-                            "origin": random.choice(["USA", "China", "Germany", "Japan", "Korea"]),
-                        },
+                        specifications=specifications,
                         weight=Decimal(random.uniform(0.1, 5.0)).quantize(Decimal('0.001')),
                         meta_title=f"Buy {brand.name} {product_data['name']} Online",
                         meta_description=f"Shop for {brand.name} {product_data['name']} at the best prices. "
@@ -363,6 +605,110 @@ class DatabasePopulator:
                     
                 except Exception as e:
                     print(f"Error creating product {product_data['name']}: {str(e)}")
+    
+    def generate_product_description(self, category, product_name, brand):
+        """Generate a realistic product description based on category and product"""
+        descriptions = {
+            "Electronics": [
+                f"Experience the latest technology with the {brand.name} {product_name}. "
+                f"This cutting-edge device combines powerful performance with sleek design. "
+                f"Perfect for both work and entertainment, it features advanced specifications "
+                f"and innovative features that set new standards in the industry.",
+                
+                f"The {brand.name} {product_name} represents the pinnacle of technological innovation. "
+                f"With its premium build quality and state-of-the-art features, this device "
+                f"delivers an exceptional user experience that exceeds expectations.",
+                
+                f"Discover the future of technology with the {brand.name} {product_name}. "
+                f"This revolutionary device offers unmatched performance, stunning visuals, "
+                f"and intuitive controls that make everyday tasks effortless."
+            ],
+            "Fashion": [
+                f"Elevate your style with the {brand.name} {product_name}. "
+                f"Crafted from premium materials, this piece combines comfort and fashion "
+                f"to create a versatile addition to your wardrobe.",
+                
+                f"The {brand.name} {product_name} is a timeless piece that never goes out of style. "
+                f"Perfect for any occasion, it offers both comfort and elegance in equal measure.",
+                
+                f"Make a statement with the {brand.name} {product_name}. "
+                f"This carefully designed piece features premium quality materials and "
+                f"expert craftsmanship for a look that's uniquely yours."
+            ],
+            "Home & Kitchen": [
+                f"Transform your living space with the {brand.name} {product_name}. "
+                f"This beautifully designed piece combines functionality with style "
+                f"to create the perfect addition to your home.",
+                
+                f"The {brand.name} {product_name} brings comfort and elegance to your home. "
+                f"Crafted with attention to detail, it offers both practicality and "
+                f"aesthetic appeal for modern living.",
+                
+                f"Enhance your home with the {brand.name} {product_name}. "
+                f"This thoughtfully designed piece offers the perfect blend of "
+                f"style, comfort, and functionality."
+            ],
+            "Beauty & Personal Care": [
+                f"Discover the secret to radiant beauty with {brand.name} {product_name}. "
+                f"This premium product is formulated with high-quality ingredients "
+                f"to deliver exceptional results for your skin.",
+                
+                f"The {brand.name} {product_name} is your daily essential for maintaining "
+                f"healthy, beautiful skin. Its advanced formula works to nourish and "
+                f"protect your skin's natural beauty.",
+                
+                f"Experience luxury skincare with {brand.name} {product_name}. "
+                f"This carefully crafted product combines science and nature to "
+                f"deliver visible results you'll love."
+            ]
+        }
+        
+        # Get the main category
+        main_category = category
+        while main_category.parent:
+            main_category = main_category.parent
+        
+        # Get appropriate description based on main category
+        category_descriptions = descriptions.get(main_category.name, descriptions["Fashion"])
+        return random.choice(category_descriptions)
+    
+    def generate_product_specifications(self, category, product_name):
+        """Generate realistic product specifications based on category"""
+        specs = {
+            "warranty": f"{random.choice([1, 2, 3])} years",
+            "material": random.choice(["Premium", "Standard", "Eco-friendly"]),
+            "origin": random.choice(["USA", "China", "Germany", "Japan", "Korea"]),
+        }
+        
+        # Add category-specific specifications
+        if "Electronics" in category.name:
+            specs.update({
+                "battery_life": f"{random.randint(8, 24)} hours",
+                "screen_size": f"{random.choice(['5.5', '6.1', '6.7', '13.3', '15.6', '17.3'])} inches",
+                "processor": random.choice(["Intel Core i7", "AMD Ryzen 9", "Apple M2", "Snapdragon 8 Gen 2"]),
+                "memory": f"{random.choice(['8', '16', '32'])}GB",
+                "storage": f"{random.choice(['128', '256', '512', '1TB'])}"
+            })
+        elif "Fashion" in category.name:
+            specs.update({
+                "care_instructions": random.choice(["Machine wash cold", "Hand wash only", "Dry clean only"]),
+                "fit": random.choice(["Regular", "Slim", "Relaxed", "Oversized"]),
+                "style": random.choice(["Casual", "Formal", "Sporty", "Classic"])
+            })
+        elif "Home & Kitchen" in category.name:
+            specs.update({
+                "dimensions": f"{random.randint(50, 200)}x{random.randint(50, 200)}x{random.randint(50, 200)} cm",
+                "assembly_required": random.choice([True, False]),
+                "color_options": random.randint(3, 8)
+            })
+        elif "Beauty & Personal Care" in category.name:
+            specs.update({
+                "skin_type": random.choice(["All skin types", "Dry skin", "Oily skin", "Combination skin"]),
+                "volume": f"{random.choice(['30', '50', '100', '200'])}ml",
+                "cruelty_free": random.choice([True, False])
+            })
+        
+        return specs
     
     def create_flash_sales(self):
         """Create flash sales with some products"""

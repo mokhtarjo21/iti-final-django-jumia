@@ -47,6 +47,9 @@ class CategoryProductsView(APIView):
 
             products = products.distinct()  # Avoid duplicates if filtering by M2M
             
+            # total number of products to show in the response
+            products_count = products.count()
+
             # Get all unique brands for this category and its subcategories
             category_brands = Brand.objects.filter(
                 products__category_id__in=category_ids
@@ -70,6 +73,7 @@ class CategoryProductsView(APIView):
             }
             
             response_data = {
+                'products_count': products_count,
                 'products': product_serializer.data,
                 'brands': list(category_brands),
                 'pagination': pagination_data
@@ -139,48 +143,59 @@ class ProductDeleteView(generics.DestroyAPIView):
     serializer_class = ProductCreateUpdateSerializer
     lookup_field = 'pk'
 
-class ProductSearchView(APIView):
-    def get(self, request):
-        # Get the search query from URL parameters
-        search_query = request.GET.get('q', '')
+# class ProductSearchView(APIView):
+#     def get(self, request):
+#         # Get the search query from URL parameters
+#         search_query = request.GET.get('q', '')
         
-        if not search_query:
-            return Response({"error": "Please provide a search query"}, status=400)
+#         if not search_query:
+#             return Response({"error": "Please provide a search query"}, status=400)
             
-        # Search in multiple fields
-        products = Product.objects.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(brand__name__icontains=search_query) |
-            Q(category__name__icontains=search_query)
-        ).distinct()
+#         # Search in multiple fields
+#         products = Product.objects.filter(
+#             Q(name__icontains=search_query) |
+#             Q(description__icontains=search_query) |
+#             Q(brand__name__icontains=search_query) |
+#             Q(category__name__icontains=search_query)
+#         ).distinct()
+#             # Apply filters similar to CategoryProductsView
+#         brand = request.GET.get('brand')
+#         if brand:
+#             brand_names = brand.split(',')
+#             products = products.filter(brand__name__in=brand_names)
 
-        # Apply filters similar to CategoryProductsView
-        brand = request.GET.get('brand')
-        if brand:
-            brand_names = brand.split(',')
-            products = products.filter(brand__name__in=brand_names)
+#         color = request.GET.get('color')
+#         if color:
+#             color_names = color.split(',')
+#             products = products.filter(colors__name__in=color_names)
 
-        color = request.GET.get('color')
-        if color:
-            color_names = color.split(',')
-            products = products.filter(colors__name__in=color_names)
-
-        min_price = request.GET.get('min_price')
-        if min_price:
-            products = products.filter(price__gte=min_price)
+#         min_price = request.GET.get('min_price')
+#         if min_price:
+#             products = products.filter(price__gte=min_price)
         
-        max_price = request.GET.get('max_price')
-        if max_price:
-            products = products.filter(price__lte=max_price)
+#         max_price = request.GET.get('max_price')
+#         if max_price:
+#             products = products.filter(price__lte=max_price)
 
-        # Pagination
-        paginator = PageNumberPagination()
-        paginator.page_size = 4  # Number of products per page
-        paginated_products = paginator.paginate_queryset(products, request)
-        serializer = ProductListSerializer(paginated_products, many=True)
+#         # appending total number of products to the response
+#         total_count = products.count()
+#         # Pagination
+#         paginator = PageNumberPagination()
+#         paginator.page_size = 4  # Number of products per page
+#         paginated_products = paginator.paginate_queryset(products, request)
+#         serializer = ProductListSerializer(paginated_products, many=True)
         
-        return paginator.get_paginated_response(serializer.data)
+#         # Add total products to the response by creating a custom response
+#         response_data = {
+#             'count': total_count,  
+#             'results': serializer.data,
+#             'next': paginator.get_next_link(),
+#             'previous': paginator.get_previous_link(),
+#             'current_page': paginator.page.number,
+#             'total_pages': paginator.page.paginator.num_pages,
+#             'page_size': paginator.page_size
+#         }
+#         return Response(response_data)
 
 class SearchSuggestionsView(APIView):
     def get(self, request):
@@ -190,7 +205,7 @@ class SearchSuggestionsView(APIView):
             return Response([])
 
         # Limit results per category
-        limit = 5
+        limit = 2
 
         # Get matching products
         products = Product.objects.filter(
@@ -236,3 +251,83 @@ class SearchSuggestionsView(APIView):
         }
 
         return Response(suggestions)
+
+# converted product search into a general view for listing, searching, and filtering by recentlyadded, sponsered
+# , brand-slug, minprice, highprice and color in products
+class ProductListView(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        
+        # Search functionality
+        search_query = request.GET.get('q', '')
+        if search_query:
+            products = products.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(brand__name__icontains=search_query) |
+                Q(category__name__icontains=search_query)
+            ).distinct()
+        
+        # Get sponsored products
+        sponsored = request.GET.get('sponsored')
+        if sponsored:
+            products = products.filter(is_sponsored=True)
+            
+        # Get recently added products
+        recent = request.GET.get('recent')
+        if recent:
+            try:
+                limit = int(recent)
+                products = products.order_by('-created_at')[:limit]
+            except ValueError:
+                pass
+            
+        # Get best sellers
+        best_sellers = request.GET.get('best_sellers')
+        if best_sellers:
+            try:
+                limit = int(best_sellers)
+                # Order by quantity_sold field
+                products = products.order_by('-quantity_sold')[:limit]
+            except ValueError:
+                pass
+            
+        # Apply filters
+        brand = request.GET.get('brand')
+        if brand:
+            brand_slugs = brand.split(',')
+            products = products.filter(brand__slug__in=brand_slugs)
+
+        color = request.GET.get('color')
+        if color:
+            color_slugs = color.split(',')
+            products = products.filter(colors__slug__in=color_slugs)
+
+        min_price = request.GET.get('min_price')
+        if min_price:
+            products = products.filter(price__gte=min_price)
+        
+        max_price = request.GET.get('max_price')
+        if max_price:
+            products = products.filter(price__lte=max_price)
+
+        # Get total count before pagination
+        total_count = products.count()
+        
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 4
+        paginated_products = paginator.paginate_queryset(products, request)
+        serializer = ProductListSerializer(paginated_products, many=True)
+        
+        response_data = {
+            'count': total_count,
+            'results': serializer.data,
+            'next': paginator.get_next_link(),
+            'previous': paginator.get_previous_link(),
+            'current_page': paginator.page.number,
+            'total_pages': paginator.page.paginator.num_pages,
+            'page_size': paginator.page_size
+        }
+        
+        return Response(response_data)
