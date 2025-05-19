@@ -195,7 +195,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'sku', 'price', 'sale_price',
             'category_name', 'category_slug', 'brand_name', 'product_images',
             'rating_average', 'rating_count', 'discount_percentage',
-            'stock_quantity', 'is_featured', 'sizes', 'colors', 'material'
+            'stock_quantity', 'is_featured', 'is_sponsored', 'sizes', 'colors', 'material'
         ]
 
     def get_product_images(self, obj):
