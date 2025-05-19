@@ -165,6 +165,7 @@ class Product(models.Model):
     
     # Inventory
     stock_quantity = models.IntegerField(default=0)
+    quantity_sold = models.IntegerField(default=0, null=True, blank=True)
     track_inventory = models.BooleanField(default=True)
     allow_backorder = models.BooleanField(default=False)
     
