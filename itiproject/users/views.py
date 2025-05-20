@@ -107,7 +107,7 @@ class RegisterView(APIView):
        # hashed_password = make_password(password)
         User.objects.create(email=email)
         user = User.objects.get(email=email)
-
+        
         activation_code = ''.join(random.choices(string.digits, k=4))
         User_active.objects.create(user=user, active=activation_code)
         send(email)
