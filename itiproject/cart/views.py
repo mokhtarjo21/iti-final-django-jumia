@@ -19,7 +19,7 @@ class UserCartView(APIView):
 
         items = CartItem.objects.filter(cart=cart)
         serializer = CartItemSerializer(items, many=True)
-        print(serializer.data)
+     
         return Response({"cart_id": cart.cart, "items": serializer.data}, status=status.HTTP_200_OK)
 
 class AddToCartView(APIView):
