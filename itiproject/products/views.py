@@ -35,8 +35,8 @@ class CategoryProductsView(APIView):
 
             color = request.GET.get('color')
             if color:
-                color_names = color.split(',')
-                products = products.filter(colors__name__in=color_names)
+                color_slugs = color.split(',')
+                products = products.filter(colors__slug__in=color_slugs)
 
             min_price = request.GET.get('min_price')
             if min_price:
