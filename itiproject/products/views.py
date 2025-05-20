@@ -433,7 +433,8 @@ class ProductListView(APIView):
         }
         
         response_data = {
-            'results': serializer.data,
+            'products_count': total_count,
+            'products': serializer.data,
             'colors': colors_list,
             'min_price': price_range['min_price'],
             'max_price': price_range['max_price'],
