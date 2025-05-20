@@ -60,6 +60,15 @@ class CategoryProductsView(APIView):
             if featured:
                 products = products.filter(is_featured=True)
 
+            # Filter by minimum rating stars unless sponsored is present
+            min_stars = request.GET.get('min_stars')
+            if min_stars:
+                try:
+                    min_stars_value = float(min_stars)
+                    products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
+                except ValueError:
+                    pass
+
             # Ordering logic (same as ProductListView)
             ordering = request.GET.get('ordering')
             if ordering == 'popularity':
@@ -313,10 +322,7 @@ class ProductListView(APIView):
                 Q(category__name__icontains=search_query)
             ).distinct()
         
-        # Get sponsored products
-        sponsored = request.GET.get('sponsored')
-        if sponsored:
-            products = products.filter(is_sponsored=True)
+
             
         # Get recently added products
         recent = request.GET.get('recent')
@@ -373,6 +379,14 @@ class ProductListView(APIView):
         if featured:
             products = products.filter(is_featured=True)   
 
+        # Filter by minimum rating stars unless sponsored is present
+        min_stars = request.GET.get('min_stars')
+        if min_stars:
+            try:
+                min_stars_value = float(min_stars)
+                products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
+            except ValueError:
+                pass
         # Ordering logic
         ordering = request.GET.get('ordering')
         if ordering == 'popularity':
