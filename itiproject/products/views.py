@@ -288,7 +288,6 @@ class SearchSuggestionsView(APIView):
                 'name': p['name'],
                 'slug': p['slug'],
                 'type': 'product',
-                'url': f'/product/{p["slug"]}'
             } for p in products],
             
             'categories': [{
@@ -296,7 +295,6 @@ class SearchSuggestionsView(APIView):
                 'name': c['name'],
                 'slug': c['slug'],
                 'type': 'category',
-                'url': f'/category/{c["slug"]}'
             } for c in categories],
             
             'brands': [{
@@ -305,7 +303,6 @@ class SearchSuggestionsView(APIView):
                 'slug': b['slug'],
                 'image': b['image'],
                 'type': 'brand',
-                'url': f'/brand/{b["slug"]}'
             } for b in brands]
         }
 
