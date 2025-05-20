@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-# from .savers import UserSerializer
+from .serializers import RegisterSerializer
 from django.http import JsonResponse
 import json
 from openai import OpenAI ,RateLimitError
@@ -282,3 +282,30 @@ class userSaveInfo(APIView):
         user.save()
 
         return Response({'message': 'User information updated successfully.'}, status=status.HTTP_200_OK)
+
+
+
+class profile(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        users = request.user
+        serializer = RegisterSerializer(users, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        try:
+            user = request.user
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = RegisterSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
