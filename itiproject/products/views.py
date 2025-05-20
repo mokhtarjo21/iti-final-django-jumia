@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q, F, ExpressionWrapper, FloatField
+from django.db.models import Q, F, ExpressionWrapper, FloatField, Min, Max
 from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,8 +35,8 @@ class CategoryProductsView(APIView):
 
             color = request.GET.get('color')
             if color:
-                color_names = color.split(',')
-                products = products.filter(colors__name__in=color_names)
+                color_slugs = color.split(',')
+                products = products.filter(colors__slug__in=color_slugs)
 
             min_price = request.GET.get('min_price')
             if min_price:
@@ -60,6 +60,21 @@ class CategoryProductsView(APIView):
             if featured:
                 products = products.filter(is_featured=True)
 
+            # Ordering logic (same as ProductListView)
+            ordering = request.GET.get('ordering')
+            if ordering == 'popularity':
+                products = products.order_by('-quantity_sold')
+            elif ordering == 'newest':
+                products = products.order_by('-created_at')
+            elif ordering == 'price_asc':
+                products = products.order_by('price')
+            elif ordering == 'price_desc':
+                products = products.order_by('-price')
+            elif ordering == 'rating':
+                products = products.order_by('-rating_average')
+            else:
+                products = products.order_by('-quantity_sold')
+
             products = products.distinct()  # Avoid duplicates if filtering by M2M
             
             # total number of products to show in the response
@@ -69,6 +84,19 @@ class CategoryProductsView(APIView):
             category_brands = Brand.objects.filter(
                 products__category_id__in=category_ids
             ).distinct().values('name', 'slug', 'image')
+
+            # Get all unique colors for this category and its subcategories
+            category_colors = products.values('colors__name', 'colors__slug').distinct()
+            colors_list = [
+                {'name': c['colors__name'], 'slug': c['colors__slug']}
+                for c in category_colors if c['colors__name'] and c['colors__slug']
+            ]
+
+            # Get the minimum and maximum price for the filtered products
+            price_range = products.aggregate(
+                min_price=Min('price'),
+                max_price=Max('price')
+            )
 
             # Pagination
             paginator = PageNumberPagination()
@@ -91,6 +119,9 @@ class CategoryProductsView(APIView):
                 'products_count': products_count,
                 'products': product_serializer.data,
                 'brands': list(category_brands),
+                'colors': colors_list,
+                'min_price': price_range['min_price'],
+                'max_price': price_range['max_price'],
                 'pagination': pagination_data
             }
 
@@ -325,7 +356,7 @@ class ProductListView(APIView):
         if max_price:
             products = products.filter(price__lte=max_price)
 
-        # Calculate discount percentage ( derived field)
+        # Calculate discount percentage (derived field)
         products = products.annotate(
             discount_percentage=ExpressionWrapper(
                 (F('price') - F('sale_price')) / F('price') * 100,
@@ -341,6 +372,36 @@ class ProductListView(APIView):
         featured = request.GET.get('is_featured')
         if featured:
             products = products.filter(is_featured=True)   
+
+        # Ordering logic
+        ordering = request.GET.get('ordering')
+        if ordering == 'popularity':
+            products = products.order_by('-quantity_sold')
+        elif ordering == 'newest':
+            products = products.order_by('-created_at')
+        elif ordering == 'price_asc':
+            products = products.order_by('price')
+        elif ordering == 'price_desc':
+            products = products.order_by('-price')
+        elif ordering == 'rating':
+            products = products.order_by('-rating_average')
+        # Default ordering (optional)
+        else:
+            products = products.order_by('-quantity_sold')
+
+        # Get all unique colors for the filtered products
+        category_colors = products.values('colors__name', 'colors__slug').distinct()
+        colors_list = [
+            {'name': c['colors__name'], 'slug': c['colors__slug']}
+            for c in category_colors if c['colors__name'] and c['colors__slug']
+        ]
+
+        # Get the minimum and maximum price for the filtered products
+        price_range = products.aggregate(
+            min_price=Min('price'),
+            max_price=Max('price')
+        )
+
         # Get total count before pagination
         total_count = products.count()
         # Pagination
@@ -352,6 +413,9 @@ class ProductListView(APIView):
         response_data = {
             'count': total_count,
             'results': serializer.data,
+            'colors': colors_list,
+            'min_price': price_range['min_price'],
+            'max_price': price_range['max_price'],
             'next': paginator.get_next_link(),
             'previous': paginator.get_previous_link(),
             'current_page': paginator.page.number,
