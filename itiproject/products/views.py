@@ -322,8 +322,6 @@ class ProductListView(APIView):
                 Q(category__name__icontains=search_query)
             ).distinct()
         
-
-            
         # Get recently added products
         recent = request.GET.get('recent')
         if recent:
@@ -332,7 +330,7 @@ class ProductListView(APIView):
                 products = products.order_by('-created_at')[:limit]
             except ValueError:
                 pass
-            
+        
         # Get best sellers
         best_sellers = request.GET.get('best_sellers')
         if best_sellers:
@@ -342,7 +340,7 @@ class ProductListView(APIView):
                 products = products.order_by('-quantity_sold')[:limit]
             except ValueError:
                 pass
-            
+        
         # Apply filters
         brand = request.GET.get('brand')
         if brand:
@@ -423,18 +421,22 @@ class ProductListView(APIView):
         paginator.page_size = 10
         paginated_products = paginator.paginate_queryset(products, request)
         serializer = ProductListSerializer(paginated_products, many=True)
-        
-        response_data = {
-            'count': total_count,
-            'results': serializer.data,
-            'colors': colors_list,
-            'min_price': price_range['min_price'],
-            'max_price': price_range['max_price'],
+
+        # Prepare pagination data in a separate object
+        pagination_data = {
+            'count': paginator.page.paginator.count,
             'next': paginator.get_next_link(),
             'previous': paginator.get_previous_link(),
             'current_page': paginator.page.number,
             'total_pages': paginator.page.paginator.num_pages,
-            'page_size': paginator.page_size
+        }
+        
+        response_data = {
+            'results': serializer.data,
+            'colors': colors_list,
+            'min_price': price_range['min_price'],
+            'max_price': price_range['max_price'],
+            'pagination': pagination_data
         }
         
         return Response(response_data)
