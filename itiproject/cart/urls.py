@@ -1,12 +1,14 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
-from .views import CartItemViewSet
-
-router = DefaultRouter()
-router.register(r'cart', CartItemViewSet, basename='cart')
-
+from .views import *
 
 urlpatterns = [
-     path('cart/', CartItemViewSet.as_view({'get': 'list', 'post': 'create'}), name='cart-list'),
-     path('cart/<int:pk>/', CartItemViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='cart-detail'),
+    path('my-cart/', UserCartView.as_view(), name='user-cart'),
+    path("cart/", UserCartView.as_view(), name="user-cart"),
+    path("cart/add/", AddToCartView.as_view(), name="add-to-cart"),
+    path("cart/update/<int:item_id>/", UpdateCartItemView.as_view(), name="update-cart-item"),
+    path("cart/bulk-add/", BulkAddToCartView.as_view(), name="bulk-add-to-cart"),
+    path("cart/remove/<int:item_id>/", RemoveCartItemView.as_view(), name="remove-cart-item"),
+    path("cart/clear/", ClearCartView.as_view(), name="clear-cart"),
+
 ]
+
