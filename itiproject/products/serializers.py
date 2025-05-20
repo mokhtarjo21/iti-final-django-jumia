@@ -247,6 +247,9 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
     brand_name = serializers.CharField(required=False, write_only=True)
     sizes = serializers.PrimaryKeyRelatedField(queryset=Size.objects.all(), many=True, required=False)
     colors = serializers.PrimaryKeyRelatedField(queryset=Color.objects.all(), many=True, required=False)
+    seller = serializers.PrimaryKeyRelatedField(read_only=True)
+    sku = serializers.CharField(required=True)
+    material = serializers.CharField(required=False)
 
     class Meta:
         model = Product
@@ -256,16 +259,35 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             'sale_end_date', 'stock_quantity', 'track_inventory',
             'allow_backorder', 'weight', 'length', 'width', 'height',
             'is_featured', 'meta_title', 'meta_description', 'meta_keywords',
-            'images_data', 'sizes', 'colors', 'material'
+            'images_data', 'sizes', 'colors', 'material', 'seller', 'sku'
         ]
-    # validate sale price is less than price
+
     def validate(self, data):
+        # Validate sale price
         if data.get('sale_price') and data.get('sale_price') >= data.get('price', 0):
             raise serializers.ValidationError("Sale price must be less than original price.")
+        
+        # Validate sale dates
+        sale_start = data.get('sale_start_date')
+        sale_end = data.get('sale_end_date')
+        if sale_start and sale_end and sale_start >= sale_end:
+            raise serializers.ValidationError("Sale start date must be before sale end date.")
+        
+        # Validate SKU uniqueness
+        sku = data.get('sku')
+        if sku:
+            if self.instance:  # Update case
+                if Product.objects.filter(sku=sku).exclude(pk=self.instance.pk).exists():
+                    raise serializers.ValidationError("A product with this SKU already exists.")
+            else:  # Create case
+                if Product.objects.filter(sku=sku).exists():
+                    raise serializers.ValidationError("A product with this SKU already exists.")
+        
         return data
+
     def create(self, validated_data):
         brand_name = validated_data.pop('brand_name', None)
-        brand_id = validated_data.get('brand', None)
+        brand_id = validated_data.pop('brand', None)
         images_data = validated_data.pop('images_data', [])
         sizes = validated_data.pop('sizes', [])
         colors = validated_data.pop('colors', [])
@@ -276,6 +298,13 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 defaults={'slug': slugify(brand_name)}
             )
             validated_data['brand'] = brand
+
+        # Set the seller to the current user
+        validated_data['seller'] = self.context['request'].user
+
+        # Generate slug if not provided
+        if 'slug' not in validated_data:
+            validated_data['slug'] = slugify(f"{validated_data['name']}-{validated_data['sku']}")
 
         product = Product.objects.create(**validated_data)
         if sizes:
@@ -304,6 +333,16 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 defaults={'slug': slugify(brand_name)}
             )
             validated_data['brand'] = brand
+
+        # Ensure seller cannot be changed during update
+        if 'seller' in validated_data:
+            validated_data.pop('seller')
+
+        # Update slug if name or SKU changes
+        if ('name' in validated_data or 'sku' in validated_data) and not validated_data.get('slug'):
+            name = validated_data.get('name', instance.name)
+            sku = validated_data.get('sku', instance.sku)
+            validated_data['slug'] = slugify(f"{name}-{sku}")
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
