@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q, F, ExpressionWrapper, FloatField
+from django.db.models import Q, F, ExpressionWrapper, FloatField, Min, Max
 from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -85,6 +85,19 @@ class CategoryProductsView(APIView):
                 products__category_id__in=category_ids
             ).distinct().values('name', 'slug', 'image')
 
+            # Get all unique colors for this category and its subcategories
+            category_colors = products.values('colors__name', 'colors__slug').distinct()
+            colors_list = [
+                {'name': c['colors__name'], 'slug': c['colors__slug']}
+                for c in category_colors if c['colors__name'] and c['colors__slug']
+            ]
+
+            # Get the minimum and maximum price for the filtered products
+            price_range = products.aggregate(
+                min_price=Min('price'),
+                max_price=Max('price')
+            )
+
             # Pagination
             paginator = PageNumberPagination()
             paginator.page_size = 10 # You can adjust this or make it configurable
@@ -106,6 +119,9 @@ class CategoryProductsView(APIView):
                 'products_count': products_count,
                 'products': product_serializer.data,
                 'brands': list(category_brands),
+                'colors': colors_list,
+                'min_price': price_range['min_price'],
+                'max_price': price_range['max_price'],
                 'pagination': pagination_data
             }
 
@@ -373,6 +389,19 @@ class ProductListView(APIView):
         else:
             products = products.order_by('-quantity_sold')
 
+        # Get all unique colors for the filtered products
+        category_colors = products.values('colors__name', 'colors__slug').distinct()
+        colors_list = [
+            {'name': c['colors__name'], 'slug': c['colors__slug']}
+            for c in category_colors if c['colors__name'] and c['colors__slug']
+        ]
+
+        # Get the minimum and maximum price for the filtered products
+        price_range = products.aggregate(
+            min_price=Min('price'),
+            max_price=Max('price')
+        )
+
         # Get total count before pagination
         total_count = products.count()
         # Pagination
@@ -384,6 +413,9 @@ class ProductListView(APIView):
         response_data = {
             'count': total_count,
             'results': serializer.data,
+            'colors': colors_list,
+            'min_price': price_range['min_price'],
+            'max_price': price_range['max_price'],
             'next': paginator.get_next_link(),
             'previous': paginator.get_previous_link(),
             'current_page': paginator.page.number,
