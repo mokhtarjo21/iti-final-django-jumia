@@ -4,13 +4,10 @@ from rest_framework import serializers
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+   
 
     class Meta:
         model = User
-        fields = ['email', 'password']
+        fields = ['email', 'first_name', 'last_name', 'phone','city','address']
 
-    def create(self, validated_data):
-       
-        validated_data['password'] = make_password(validated_data['password'])
-        return User.objects.create(**validated_data)
+   
