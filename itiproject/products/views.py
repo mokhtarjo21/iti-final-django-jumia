@@ -261,9 +261,7 @@ class ProductDeleteView(generics.DestroyAPIView):
 class SearchSuggestionsView(APIView):
     def get(self, request):
         query = request.GET.get('q', '').strip()
-        
-        if len(query) < 2:  # Only show suggestions after 2 characters
-            return Response([])
+
 
         # Limit results per category
         limit = 2
@@ -466,10 +464,42 @@ class VendorProductsView(APIView):
                 Q(sku__icontains=search_query)
             )
         
+        # Filter by category
+        category = request.GET.get('category')
+        if category:
+            products = products.filter(category__slug=category)
+        
+        # Filter by brand
+        brand = request.GET.get('brand')
+        if brand:
+            products = products.filter(brand__slug=brand)
+        
+        # Filter by price range
+        min_price = request.GET.get('min_price')
+        if min_price:
+            products = products.filter(price__gte=min_price)
+        
+        max_price = request.GET.get('max_price')
+        if max_price:
+            products = products.filter(price__lte=max_price)
+        
         # Filter by stock status
         in_stock = request.GET.get('in_stock')
         if in_stock:
             products = products.filter(stock_quantity__gt=0)
+        
+        # Calculate discount percentage
+        products = products.annotate(
+            discount_percentage=ExpressionWrapper(
+                (F('price') - F('sale_price')) / F('price') * 100,
+                output_field=FloatField()
+            )
+        )
+        
+        # Filter by discount
+        discount = request.GET.get('discount_min')
+        if discount:
+            products = products.filter(discount_percentage__gte=float(discount))
         
         # Ordering
         ordering = request.GET.get('ordering')
@@ -486,7 +516,12 @@ class VendorProductsView(APIView):
         else:
             products = products.order_by('-created_at')  # Default ordering
         
-
+        # Get price range for filtered products
+        price_range = products.aggregate(
+            min_price=Min('price'),
+            max_price=Max('price')
+        )
+        
         # Pagination
         paginator = PageNumberPagination()
         paginator.page_size = 10
@@ -507,6 +542,8 @@ class VendorProductsView(APIView):
         # Prepare response data
         response_data = {
             'results': serializer.data,
+            'min_price': price_range['min_price'],
+            'max_price': price_range['max_price'],
             'pagination': pagination_data,
             'total_products': products.count(),
             'total_revenue': products.aggregate(
