@@ -5,7 +5,6 @@ from .models import (
     Category, Brand, Product, ProductImage, Size, Color,
     FlashSale, FlashSaleItem
 )
-
 # ==================== CATEGORY SERIALIZERS ====================
 
 class CategoryListSerializer(serializers.ModelSerializer):
@@ -192,7 +191,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'slug', 'sku', 'price', 'sale_price',
+            'id', 'name', 'slug', 'sku', 'price', 'sale_price', 'seller',
             'category_name', 'category_slug', 'brand_name', 'product_images',
             'rating_average', 'rating_count', 'discount_percentage',
             'stock_quantity', 'quantity_sold', 'is_featured', 'is_sponsored', 'sizes', 'colors', 'material',
@@ -223,7 +222,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'sku', 'name', 'slug', 'category', 'brand',
+            'id', 'sku', 'name', 'slug', 'category', 'brand', 'seller',
             'description', 'specifications', 'price', 'sale_price',
             'sale_start_date', 'sale_end_date', 'stock_quantity',
             'track_inventory', 'allow_backorder', 'weight', 'length', 

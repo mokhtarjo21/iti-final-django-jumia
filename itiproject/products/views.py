@@ -7,9 +7,15 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Category, Product, Brand
 from .serializers import (
     ProductListSerializer, CategoryListSerializer, CategoryDetailSerializer, CategoryCreateUpdateSerializer,
-    ProductCreateUpdateSerializer)
+    ProductCreateUpdateSerializer, ProductImageSerializer, SizeSerializer, ColorSerializer, BrandListSerializer)
 from rest_framework import generics
 from rest_framework import status
+# modules to handle auth
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q, F, ExpressionWrapper, FloatField, Min, Max, Sum
 
 # Create your views here.
 
@@ -440,3 +446,74 @@ class ProductListView(APIView):
         }
         
         return Response(response_data)
+
+class VendorProductsView(APIView):
+    """
+    API endpoint to list products for the currently logged-in vendor (staff user)
+    """
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated staff users can access
+    
+    def get(self, request):
+        # Get products for the current vendor
+        products = Product.objects.filter(seller=request.user)
+        
+        # Apply filters if provided
+        search_query = request.GET.get('q', '')
+        if search_query:
+            products = products.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(sku__icontains=search_query)
+            )
+        
+        # Filter by stock status
+        in_stock = request.GET.get('in_stock')
+        if in_stock:
+            products = products.filter(stock_quantity__gt=0)
+        
+        # Ordering
+        ordering = request.GET.get('ordering')
+        if ordering == 'popularity':
+            products = products.order_by('-quantity_sold')
+        elif ordering == 'newest':
+            products = products.order_by('-created_at')
+        elif ordering == 'price_asc':
+            products = products.order_by('price')
+        elif ordering == 'price_desc':
+            products = products.order_by('-price')
+        elif ordering == 'rating':
+            products = products.order_by('-rating_average')
+        else:
+            products = products.order_by('-created_at')  # Default ordering
+        
+
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        paginated_products = paginator.paginate_queryset(products, request)
+        
+        # Serialize the data
+        serializer = ProductListSerializer(paginated_products, many=True)
+        
+        # Prepare pagination data
+        pagination_data = {
+            'count': paginator.page.paginator.count,
+            'next': paginator.get_next_link(),
+            'previous': paginator.get_previous_link(),
+            'current_page': paginator.page.number,
+            'total_pages': paginator.page.paginator.num_pages,
+        }
+        
+        # Prepare response data
+        response_data = {
+            'results': serializer.data,
+            'pagination': pagination_data,
+            'total_products': products.count(),
+            'total_revenue': products.aggregate(
+                total=Sum(F('price') * F('quantity_sold'))
+            )['total'] or 0
+        }
+        
+        return Response(response_data)
+
+

@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from django.db.models import Avg
 import uuid
 from django.core.exceptions import ValidationError
+from users.models import User
 
 User = get_user_model()
 
@@ -126,11 +127,15 @@ class Product(models.Model):
     """Main product model"""
     # Basic Information
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # vendor = models.ForeignKey(
-    #     'vendors.Vendor', 
-    #     on_delete=models.CASCADE,
-    #     related_name='products'
-    # )
+    seller = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='vendor_products',
+        limit_choices_to={'is_staff': True} 
+    )
+    
     sku = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=500)
 

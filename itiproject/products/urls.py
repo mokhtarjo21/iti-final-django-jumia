@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     CategoryProductsView, CategoryTreeView, CategoryDetailView, CategoryDetailBySlugView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView,
-    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductListView, SearchSuggestionsView
+    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductListView, SearchSuggestionsView, VendorProductsView
 )
 
 urlpatterns = [
@@ -33,4 +33,7 @@ urlpatterns = [
     # the same as products/ but front end should include search query q=xyz in url 
     path('search/', ProductListView.as_view(), name='product-list'),
     path('search-suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
+
+    # Vendor endpoints
+    path('vendor/products/', VendorProductsView.as_view(), name='vendor-products'),
 ]
