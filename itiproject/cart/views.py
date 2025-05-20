@@ -58,8 +58,9 @@ class UpdateCartItemView(APIView):
 
     def put(self, request, item_id):
         try:
+            product= Product.objects.get(id=item_id)
             user = User.objects.get(id=request.user.id)
-            cart_item = CartItem.objects.get(id=item_id, cart__user=user)
+            cart_item = CartItem.objects.get(product=product, cart__user=user)
         except CartItem.DoesNotExist:
             return Response({"error": "Cart item not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -108,9 +109,14 @@ class RemoveCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, item_id):
+        colors = request.data.get("colors")
+        size = request.data.get("size")
+        print(colors,size)
         try:
             user= User.objects.get(id=request.user.id)
-            cart_item = CartItem.objects.get(id=item_id, cart__user=user)
+            product= Product.objects.get(id=item_id)
+            cart = Cart.objects.get(user=user)
+            cart_item = CartItem.objects.get(product=product,colors=colors,size=size, cart__user=user)
             cart_item.delete()
             return Response({"message": "Item removed from cart"}, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
