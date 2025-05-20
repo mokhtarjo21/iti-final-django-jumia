@@ -60,6 +60,21 @@ class CategoryProductsView(APIView):
             if featured:
                 products = products.filter(is_featured=True)
 
+            # Ordering logic (same as ProductListView)
+            ordering = request.GET.get('ordering')
+            if ordering == 'popularity':
+                products = products.order_by('-quantity_sold')
+            elif ordering == 'newest':
+                products = products.order_by('-created_at')
+            elif ordering == 'price_asc':
+                products = products.order_by('price')
+            elif ordering == 'price_desc':
+                products = products.order_by('-price')
+            elif ordering == 'rating':
+                products = products.order_by('-rating_average')
+            else:
+                products = products.order_by('-quantity_sold')
+
             products = products.distinct()  # Avoid duplicates if filtering by M2M
             
             # total number of products to show in the response
@@ -325,7 +340,7 @@ class ProductListView(APIView):
         if max_price:
             products = products.filter(price__lte=max_price)
 
-        # Calculate discount percentage ( derived field)
+        # Calculate discount percentage (derived field)
         products = products.annotate(
             discount_percentage=ExpressionWrapper(
                 (F('price') - F('sale_price')) / F('price') * 100,
@@ -341,6 +356,23 @@ class ProductListView(APIView):
         featured = request.GET.get('is_featured')
         if featured:
             products = products.filter(is_featured=True)   
+
+        # Ordering logic
+        ordering = request.GET.get('ordering')
+        if ordering == 'popularity':
+            products = products.order_by('-quantity_sold')
+        elif ordering == 'newest':
+            products = products.order_by('-created_at')
+        elif ordering == 'price_asc':
+            products = products.order_by('price')
+        elif ordering == 'price_desc':
+            products = products.order_by('-price')
+        elif ordering == 'rating':
+            products = products.order_by('-rating_average')
+        # Default ordering (optional)
+        else:
+            products = products.order_by('-quantity_sold')
+
         # Get total count before pagination
         total_count = products.count()
         # Pagination
