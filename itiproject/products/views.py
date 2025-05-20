@@ -56,6 +56,9 @@ class CategoryProductsView(APIView):
             if discount:
                 products = products.filter(discount_percentage__gte=float(discount))
 
+            featured = request.GET.get('is_featured')
+            if featured:
+                products = products.filter(is_featured=True)
 
             products = products.distinct()  # Avoid duplicates if filtering by M2M
             
@@ -332,7 +335,12 @@ class ProductListView(APIView):
         # Filter by minimum discount
         discount = request.GET.get('discount_min')
         if discount:
-            products = products.filter(discount_percentage__gte=float(discount))   
+            products = products.filter(discount_percentage__gte=float(discount))
+
+        # filter by is_featured 
+        featured = request.GET.get('is_featured')
+        if featured:
+            products = products.filter(is_featured=True)   
         # Get total count before pagination
         total_count = products.count()
         # Pagination
