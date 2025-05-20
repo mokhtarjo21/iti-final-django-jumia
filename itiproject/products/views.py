@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, F, ExpressionWrapper, FloatField
 from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -44,6 +44,18 @@ class CategoryProductsView(APIView):
             max_price = request.GET.get('max_price')
             if max_price:
                 products = products.filter(price__lte=max_price)
+            
+            products = products.annotate(
+                discount_percentage=ExpressionWrapper(
+                    (F('price') - F('sale_price')) / F('price') * 100,
+                    output_field=FloatField()
+                )
+            )
+
+            discount = request.GET.get('discount_min')
+            if discount:
+                products = products.filter(discount_percentage__gte=float(discount))
+
 
             products = products.distinct()  # Avoid duplicates if filtering by M2M
             
@@ -57,7 +69,7 @@ class CategoryProductsView(APIView):
 
             # Pagination
             paginator = PageNumberPagination()
-            paginator.page_size = 4  # You can adjust this or make it configurable
+            paginator.page_size = 10 # You can adjust this or make it configurable
             paginated_products = paginator.paginate_queryset(products, request)
             
             # Serialize the data
@@ -257,7 +269,6 @@ class SearchSuggestionsView(APIView):
 class ProductListView(APIView):
     def get(self, request):
         products = Product.objects.all()
-        
         # Search functionality
         search_query = request.GET.get('q', '')
         if search_query:
@@ -311,12 +322,22 @@ class ProductListView(APIView):
         if max_price:
             products = products.filter(price__lte=max_price)
 
+        # Calculate discount percentage ( derived field)
+        products = products.annotate(
+            discount_percentage=ExpressionWrapper(
+                (F('price') - F('sale_price')) / F('price') * 100,
+                output_field=FloatField()
+            )
+        )
+        # Filter by minimum discount
+        discount = request.GET.get('discount_min')
+        if discount:
+            products = products.filter(discount_percentage__gte=float(discount))   
         # Get total count before pagination
         total_count = products.count()
-        
         # Pagination
         paginator = PageNumberPagination()
-        paginator.page_size = 4
+        paginator.page_size = 10
         paginated_products = paginator.paginate_queryset(products, request)
         serializer = ProductListSerializer(paginated_products, many=True)
         
