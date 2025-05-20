@@ -60,6 +60,15 @@ class CategoryProductsView(APIView):
             if featured:
                 products = products.filter(is_featured=True)
 
+            # Filter by minimum rating stars unless sponsored is present
+            min_stars = request.GET.get('min_stars')
+            if min_stars:
+                try:
+                    min_stars_value = float(min_stars)
+                    products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
+                except ValueError:
+                    pass
+
             # Ordering logic (same as ProductListView)
             ordering = request.GET.get('ordering')
             if ordering == 'popularity':
@@ -313,11 +322,6 @@ class ProductListView(APIView):
                 Q(category__name__icontains=search_query)
             ).distinct()
         
-        # Get sponsored products
-        sponsored = request.GET.get('sponsored')
-        if sponsored:
-            products = products.filter(is_sponsored=True)
-            
         # Get recently added products
         recent = request.GET.get('recent')
         if recent:
@@ -326,7 +330,7 @@ class ProductListView(APIView):
                 products = products.order_by('-created_at')[:limit]
             except ValueError:
                 pass
-            
+        
         # Get best sellers
         best_sellers = request.GET.get('best_sellers')
         if best_sellers:
@@ -336,7 +340,7 @@ class ProductListView(APIView):
                 products = products.order_by('-quantity_sold')[:limit]
             except ValueError:
                 pass
-            
+        
         # Apply filters
         brand = request.GET.get('brand')
         if brand:
@@ -373,6 +377,14 @@ class ProductListView(APIView):
         if featured:
             products = products.filter(is_featured=True)   
 
+        # Filter by minimum rating stars unless sponsored is present
+        min_stars = request.GET.get('min_stars')
+        if min_stars:
+            try:
+                min_stars_value = float(min_stars)
+                products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
+            except ValueError:
+                pass
         # Ordering logic
         ordering = request.GET.get('ordering')
         if ordering == 'popularity':
@@ -409,18 +421,22 @@ class ProductListView(APIView):
         paginator.page_size = 10
         paginated_products = paginator.paginate_queryset(products, request)
         serializer = ProductListSerializer(paginated_products, many=True)
-        
-        response_data = {
-            'count': total_count,
-            'results': serializer.data,
-            'colors': colors_list,
-            'min_price': price_range['min_price'],
-            'max_price': price_range['max_price'],
+
+        # Prepare pagination data in a separate object
+        pagination_data = {
+            'count': paginator.page.paginator.count,
             'next': paginator.get_next_link(),
             'previous': paginator.get_previous_link(),
             'current_page': paginator.page.number,
             'total_pages': paginator.page.paginator.num_pages,
-            'page_size': paginator.page_size
+        }
+        
+        response_data = {
+            'results': serializer.data,
+            'colors': colors_list,
+            'min_price': price_range['min_price'],
+            'max_price': price_range['max_price'],
+            'pagination': pagination_data
         }
         
         return Response(response_data)
