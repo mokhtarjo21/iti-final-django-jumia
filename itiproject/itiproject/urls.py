@@ -14,6 +14,8 @@ urlpatterns = [
 
     path('api/home/', include('home.urls')),
     path('api/', include('cart.urls')),  # Mn3m
+    path('api/orders/', include('orders.urls')),#Mn3m
+
 
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
