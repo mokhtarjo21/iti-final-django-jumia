@@ -28,6 +28,8 @@ class Order(models.Model):
     payment_completed = models.BooleanField(default=False)
     paymob_order_id = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)  ####
+
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.email if self.user else 'Unknown'}"
