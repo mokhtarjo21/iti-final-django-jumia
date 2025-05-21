@@ -3,6 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from .serializers import VendorOrderItemSerializer
+from django.shortcuts import get_object_or_404
+
 
 from products.models import Product
 from .models import Order, OrderItem
@@ -83,3 +86,30 @@ class CheckoutView(APIView):
             return Response({"error": str(e)}, status=500)
 
         return Response({"message": "Orders created successfully", "order_ids": order_ids}, status=201)
+    
+    
+class VendorOrderItemsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=403)
+
+        items = OrderItem.objects.filter(vendor=request.user)
+        serializer = VendorOrderItemSerializer(items, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=403)
+
+        item = get_object_or_404(OrderItem, pk=pk, vendor=request.user)
+
+        new_status = request.data.get("status")
+        if new_status not in ["accepted", "rejected"]:
+            return Response({"error": "Invalid status."}, status=400)
+
+        item.status = new_status
+        item.save()
+        item.order.check_status()  # will mark order as processing if all items accepted
+        return Response({"message": f"Order item {item.id} updated to '{new_status}'."})

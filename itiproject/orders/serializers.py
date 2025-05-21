@@ -7,13 +7,13 @@ from users.models import Vendor
 class VendorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendor
-        fields = ['id', 'shopName']  # Add more if needed
+        fields = ['id', 'shopName']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price']  # You can expand this as needed
+        fields = ['id', 'name', 'price']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -40,3 +40,24 @@ class OrderSerializer(serializers.ModelSerializer):
             'items',
         ]
         read_only_fields = ['user', 'payment_completed', 'items']
+
+
+class VendorOrderItemSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source='order.id', read_only=True)
+    customer_email = serializers.EmailField(source='order.user.email', read_only=True)
+    shipping_address = serializers.CharField(source='order.shipping_address', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = [
+            'id',
+            'order_id',
+            'customer_email',
+            'shipping_address',
+            'product_name',
+            'product_price',
+            'quantity',
+            'status',
+        ]
