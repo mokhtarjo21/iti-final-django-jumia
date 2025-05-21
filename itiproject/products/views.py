@@ -4,7 +4,7 @@ from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from .models import Category, Product, Brand
+from .models import Category, Product, Brand, Color, Size
 from .serializers import (
     ProductListSerializer, CategoryListSerializer, CategoryDetailSerializer, CategoryCreateUpdateSerializer,
     ProductCreateUpdateSerializer, ProductImageSerializer, SizeSerializer, ColorSerializer, BrandListSerializer)
@@ -552,3 +552,11 @@ class VendorProductsView(APIView):
         return Response(response_data)
 
 
+class getsizecolor(APIView):
+    def get(self, request):
+        colors = Color.objects.all()
+        sizes = Size.objects.all()
+        return Response({
+            'colors': ColorSerializer(colors, many=True).data,
+            'sizes': SizeSerializer(sizes, many=True).data
+        })
