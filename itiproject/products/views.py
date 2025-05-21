@@ -556,7 +556,12 @@ class getsizecolor(APIView):
     def get(self, request):
         colors = Color.objects.all()
         sizes = Size.objects.all()
+        categories = Category.objects.all()
+        brands = Brand.objects.all()
+        print('colors')
         return Response({
             'colors': ColorSerializer(colors, many=True).data,
-            'sizes': SizeSerializer(sizes, many=True).data
+            'sizes': SizeSerializer(sizes, many=True).data,
+            'categories': CategoryListSerializer(categories, many=True).data,
+            'brands': BrandListSerializer(brands, many=True).data
         })
