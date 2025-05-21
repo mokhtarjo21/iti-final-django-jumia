@@ -1,8 +1,5 @@
 from django.urls import path
-from .views import (
-    CategoryProductsView, CategoryTreeView, CategoryDetailView, CategoryDetailBySlugView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView,
-    ProductDetailView, ProductCreateView, ProductUpdateView, ProductDeleteView, ProductListView, SearchSuggestionsView, VendorProductsView
-)
+from .views import *
 
 urlpatterns = [
     # Category endpoints
@@ -36,4 +33,5 @@ urlpatterns = [
 
     # Vendor endpoints
     path('vendor/products/', VendorProductsView.as_view(), name='vendor-products'),
+    path('vendor/', getsizecolor.as_view(), name='vendor-product-detail'),
 ]

@@ -38,6 +38,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    print("CustomTokenObtainPairView")
     serializer_class = CustomTokenObtainPairSerializer
 
 
@@ -59,11 +60,15 @@ class check_email(APIView):
 class check_vendor(APIView):        
     def post(self,request):
         email = request.data.get('email')
+        print("Email:", email)
         exists = User.objects.filter(email=email).exists()
         if exists:
             user = User.objects.get(email=email)
             stuf = user.is_staff
+            print("Email:", email)
+            print("stuf:", stuf)
             if stuf:
+                print
                 return Response({'user': '1'}, status=status.HTTP_200_OK)
         return Response({'user': '0'}, status=status.HTTP_200_OK)
 
