@@ -323,25 +323,6 @@ class ProductListView(APIView):
                 Q(category__name__icontains=search_query)
             ).distinct()
         
-        # Get recently added products
-        recent = request.GET.get('recent')
-        if recent:
-            try:
-                limit = int(recent)
-                products = products.order_by('-created_at')[:limit]
-            except ValueError:
-                pass
-        
-        # Get best sellers
-        best_sellers = request.GET.get('best_sellers')
-        if best_sellers:
-            try:
-                limit = int(best_sellers)
-                # Order by quantity_sold field
-                products = products.order_by('-quantity_sold')[:limit]
-            except ValueError:
-                pass
-        
         # Apply filters
         brand = request.GET.get('brand')
         if brand:
@@ -386,6 +367,7 @@ class ProductListView(APIView):
                 products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
             except ValueError:
                 pass
+
         # Ordering logic
         ordering = request.GET.get('ordering')
         if ordering == 'popularity':
@@ -417,20 +399,45 @@ class ProductListView(APIView):
 
         # Get total count before pagination
         total_count = products.count()
-        # Pagination
-        paginator = PageNumberPagination()
-        paginator.page_size = 10
-        paginated_products = paginator.paginate_queryset(products, request)
-        serializer = ProductListSerializer(paginated_products, many=True)
 
-        # Prepare pagination data in a separate object
-        pagination_data = {
-            'count': paginator.page.paginator.count,
-            'next': paginator.get_next_link(),
-            'previous': paginator.get_previous_link(),
-            'current_page': paginator.page.number,
-            'total_pages': paginator.page.paginator.num_pages,
-        }
+        # Handle best_sellers and recent products after all filters
+        best_sellers = request.GET.get('best_sellers')
+        if best_sellers:
+            try:
+                limit = int(best_sellers)
+                products = products.order_by('-quantity_sold')[:limit]
+                serializer = ProductListSerializer(products, many=True)
+                pagination_data = {
+                    'count': total_count,
+                    'next': None,
+                    'previous': None,
+                    'current_page': 1,
+                    'total_pages': 1,
+                }
+            except ValueError:
+                pass
+        else:
+            # Get recently added products
+            recent = request.GET.get('recent')
+            if recent:
+                try:
+                    limit = int(recent)
+                    products = products.order_by('-created_at')[:limit]
+                except ValueError:
+                    pass
+
+            # Pagination
+            paginator = PageNumberPagination()
+            paginator.page_size = 10
+            paginated_products = paginator.paginate_queryset(products, request)
+            serializer = ProductListSerializer(paginated_products, many=True)
+            pagination_data = {
+                'count': paginator.page.paginator.count,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
+                'current_page': paginator.page.number,
+                'total_pages': paginator.page.paginator.num_pages,
+            }
         
         response_data = {
             'products_count': total_count,
