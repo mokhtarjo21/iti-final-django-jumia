@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Order, OrderItem
 from products.models import Product
-from users.models import Vendor
+from users.models import Vendor,User
 
 
 class VendorSerializer(serializers.ModelSerializer):
@@ -42,22 +42,36 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'payment_completed', 'items']
 
 
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [ 'first_name', 'last_name', 'email', 'phone']
 class VendorOrderItemSerializer(serializers.ModelSerializer):
     order_id = serializers.IntegerField(source='order.id', read_only=True)
-    customer_email = serializers.EmailField(source='order.user.email', read_only=True)
+    customer_name = serializers.CharField(source='order.user.first_name', read_only=True)
     shipping_address = serializers.CharField(source='order.shipping_address', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
-
+    payment_method = serializers.CharField(source='order.payment_method', read_only=True)
+    created_at = serializers.DateTimeField(source='order.created_at', read_only=True)
+    customer = CustomerSerializer(source='order.user', read_only=True)
     class Meta:
         model = OrderItem
         fields = [
             'id',
             'order_id',
-            'customer_email',
+            'customer_name',
+            'customer',
             'shipping_address',
             'product_name',
             'product_price',
             'quantity',
             'status',
+            'payment_method',
+            'created_at',
         ]

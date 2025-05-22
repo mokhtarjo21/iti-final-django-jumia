@@ -103,18 +103,20 @@ class VendorOrderItemsView(APIView):
         return Response(serializer.data)
 
     def patch(self, request, pk):
+
         if not request.user.is_staff:
             return Response({"error": "Unauthorized"}, status=403)
 
-        item = get_object_or_404(OrderItem, pk=pk, vendor=request.user)
+        item = get_object_or_404(OrderItem, pk=pk, order__vendor=request.user)
 
         new_status = request.data.get("status")
-        if new_status not in ["accepted", "rejected"]:
+        print(new_status)
+        if new_status not in ["accepted", "cancelled","pending","processing","shipped","delivered"]:
             return Response({"error": "Invalid status."}, status=400)
 
         item.status = new_status
         item.save()
-        item.order.check_status()  # will mark order as processing if all items accepted
+        item.order.check_status()
         return Response({"message": f"Order item {item.id} updated to '{new_status}'."})
 
 
