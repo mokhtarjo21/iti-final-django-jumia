@@ -5,6 +5,7 @@ from rest_framework import status
 from django.db import transaction
 from .serializers import VendorOrderItemSerializer
 from django.shortcuts import get_object_or_404
+from .paymob import get_paymob_token, create_paymob_order, generate_paymob_payment_key
 
 
 from products.models import Product
@@ -86,8 +87,8 @@ class CheckoutView(APIView):
             return Response({"error": str(e)}, status=500)
 
         return Response({"message": "Orders created successfully", "order_ids": order_ids}, status=201)
-    
-    
+
+
 class VendorOrderItemsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -113,3 +114,36 @@ class VendorOrderItemsView(APIView):
         item.save()
         item.order.check_status()  # will mark order as processing if all items accepted
         return Response({"message": f"Order item {item.id} updated to '{new_status}'."})
+
+
+
+
+class PaymobPaymentView(APIView):
+    def post(self, request):
+        user = request.user
+        total_price = request.data.get("total_price", 0)
+        amount_cents = int(float(total_price) * 100)
+
+        billing_data = {
+            "first_name": user.first_name or "Ahmed",
+            "last_name": user.last_name or "Abdelmoniem",
+            "email": user.email or "user@example.com",
+            "phone_number": user.phone or "01000000000",
+            "apartment": "NA",
+            "floor": "NA",
+            "street": "NA",
+            "building": "NA",
+            "city": user.city or "Cairo",
+            "country": user.countrycode or "EG",
+            "state": "NA",
+        }
+
+        try:
+            token = get_paymob_token()
+            order_id = create_paymob_order(token, amount_cents)
+            payment_token = generate_paymob_payment_key(token, amount_cents, order_id, billing_data)
+            iframe_url = f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}?payment_token={payment_token}"
+
+            return Response({"iframe_url": iframe_url})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
