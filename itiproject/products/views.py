@@ -349,10 +349,16 @@ class ProductListView(APIView):
                 output_field=FloatField()
             )
         )
-        # Filter by minimum discount
+
+        # Filter by minimum discount percentage
         discount = request.GET.get('discount_min')
         if discount:
             products = products.filter(discount_percentage__gte=float(discount))
+
+        # Filter for products with discounts only
+        has_discount = request.GET.get('has_discount')
+        if has_discount:
+            products = products.filter(sale_price__isnull=False, sale_price__lt=F('price'))
 
         # filter by is_featured 
         featured = request.GET.get('is_featured')
@@ -367,6 +373,11 @@ class ProductListView(APIView):
                 products = products.filter(Q(rating_average__gte=min_stars_value) | Q(is_sponsored=True))
             except ValueError:
                 pass
+
+        # Filter sponsored products
+        sponsored = request.GET.get('sponsored')
+        if sponsored:
+            products = products.filter(is_sponsored=True)
 
         # Ordering logic
         ordering = request.GET.get('ordering')
@@ -396,8 +407,6 @@ class ProductListView(APIView):
             min_price=Min('price'),
             max_price=Max('price')
         )
-
-        # Get total count before pagination
 
         # Handle best_sellers and recent products after all filters
         best_sellers = request.GET.get('best_sellers')
