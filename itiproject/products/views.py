@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Min, Max, Sum
-
+from users.models import User
 # Create your views here.
 
 def get_descendant_ids(category):
@@ -565,3 +565,33 @@ class getsizecolor(APIView):
             'categories': CategoryListSerializer(categories, many=True).data,
             'brands': BrandListSerializer(brands, many=True).data
         })
+class updateProduct(APIView):
+    def put(self, request, id):
+        try:
+            user = request.user
+            product = Product.objects.get(id=id, seller=user)
+
+           
+            product.name = request.data.get('name', product.name)
+            product.price = request.data.get('price', product.price)
+            product.sale_price = request.data.get('sale_price', product.sale_price)
+            product.stock_quantity = request.data.get('stock_quantity', product.stock_quantity)
+
+            product.save()
+          
+            return Response({
+                "id": product.id,
+                "name": product.name,
+                "price": product.price,
+                "sale_price": product.sale_price,
+                "stock_quantity": product.stock_quantity,
+                "sku":product.sku,
+                "category_name":product.category.name,
+                "rating_average":product.rating_average,
+                "message": "Product updated successfully"
+            }, status=status.HTTP_200_OK)
+
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found or unauthorized"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

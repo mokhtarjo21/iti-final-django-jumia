@@ -56,7 +56,7 @@ class check_email(APIView):
                 return Response({'user': '1'}, status=status.HTTP_200_OK)
 
         return Response({'user': '0'}, status=status.HTTP_200_OK)
-
+    
 class check_vendor(APIView):        
     def post(self,request):
         email = request.data.get('email')
@@ -71,7 +71,12 @@ class check_vendor(APIView):
                 print
                 return Response({'user': '1'}, status=status.HTTP_200_OK)
         return Response({'user': '0'}, status=status.HTTP_200_OK)
-
+    def get(self,request):
+        
+        vendor = request.user.is_staff
+        if vendor:
+            return Response({'user':'1'},status=status.HTTP_200_OK)
+        return Response({'user':'0'},status=status.HTTP_200_OK)
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
     def post(self, request):
