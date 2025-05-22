@@ -115,7 +115,7 @@ class CategoryProductsView(APIView):
 
             # Pagination
             paginator = PageNumberPagination()
-            paginator.page_size = 10 # You can adjust this or make it configurable
+            paginator.page_size = 12 # You can adjust this or make it configurable
             paginated_products = paginator.paginate_queryset(products, request)
             
             # Serialize the data
@@ -403,9 +403,9 @@ class ProductListView(APIView):
         best_sellers = request.GET.get('best_sellers')
         if best_sellers:
             try:
-                total_count = products.count()
                 limit = int(best_sellers)
                 products = products.order_by('-quantity_sold')[:limit]
+                total_count = products.count()
                 serializer = ProductListSerializer(products, many=True)
                 pagination_data = {
                     'count': total_count,
@@ -429,7 +429,7 @@ class ProductListView(APIView):
             total_count = products.count()
             # Pagination
             paginator = PageNumberPagination()
-            paginator.page_size = 10
+            paginator.page_size = 12
             paginated_products = paginator.paginate_queryset(products, request)
             serializer = ProductListSerializer(paginated_products, many=True)
             pagination_data = {
@@ -530,7 +530,7 @@ class VendorProductsView(APIView):
         
         # Pagination
         paginator = PageNumberPagination()
-        paginator.page_size = 10
+        paginator.page_size = 12
         paginated_products = paginator.paginate_queryset(products, request)
         
         # Serialize the data
