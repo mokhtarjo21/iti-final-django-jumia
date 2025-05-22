@@ -398,12 +398,12 @@ class ProductListView(APIView):
         )
 
         # Get total count before pagination
-        total_count = products.count()
 
         # Handle best_sellers and recent products after all filters
         best_sellers = request.GET.get('best_sellers')
         if best_sellers:
             try:
+                total_count = products.count()
                 limit = int(best_sellers)
                 products = products.order_by('-quantity_sold')[:limit]
                 serializer = ProductListSerializer(products, many=True)
@@ -426,6 +426,7 @@ class ProductListView(APIView):
                 except ValueError:
                     pass
 
+            total_count = products.count()
             # Pagination
             paginator = PageNumberPagination()
             paginator.page_size = 10
