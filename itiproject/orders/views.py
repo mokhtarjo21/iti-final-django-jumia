@@ -6,6 +6,8 @@ from django.db import transaction
 from .serializers import VendorOrderItemSerializer
 from django.shortcuts import get_object_or_404
 from .paymob import get_paymob_token, create_paymob_order, generate_paymob_payment_key
+from django.conf import settings  # ✅ Required
+
 
 
 from products.models import Product
@@ -119,9 +121,14 @@ class VendorOrderItemsView(APIView):
 
 
 class PaymobPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
         total_price = request.data.get("total_price", 0)
+        if not total_price:
+            return Response({"error": "Missing total_price"}, status=400)
+
         amount_cents = int(float(total_price) * 100)
 
         billing_data = {
@@ -136,14 +143,19 @@ class PaymobPaymentView(APIView):
             "city": user.city or "Cairo",
             "country": user.countrycode or "EG",
             "state": "NA",
+            "postal_code": "NA",
+            "shipping_method": "PKG",
         }
 
         try:
             token = get_paymob_token()
             order_id = create_paymob_order(token, amount_cents)
             payment_token = generate_paymob_payment_key(token, amount_cents, order_id, billing_data)
+
             iframe_url = f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}?payment_token={payment_token}"
 
             return Response({"iframe_url": iframe_url})
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=500)
