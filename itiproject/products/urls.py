@@ -34,4 +34,5 @@ urlpatterns = [
     # Vendor endpoints
     path('vendor/products/', VendorProductsView.as_view(), name='vendor-products'),
     path('vendor/', getsizecolor.as_view(), name='vendor-product-detail'),
+    path('vendor/update/<uuid:id>/',updateProduct.as_view(),name='updateProduct')
 ]
