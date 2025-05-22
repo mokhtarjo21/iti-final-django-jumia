@@ -98,7 +98,7 @@ class VendorOrderItemsView(APIView):
         if not request.user.is_staff:
             return Response({"error": "Unauthorized"}, status=403)
 
-        items = OrderItem.objects.filter(vendor=request.user)
+        items = OrderItem.objects.filter(order__vendor=request.user)
         serializer = VendorOrderItemSerializer(items, many=True)
         return Response(serializer.data)
 
