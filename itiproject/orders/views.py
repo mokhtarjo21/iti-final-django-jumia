@@ -91,7 +91,6 @@ class CheckoutView(APIView):
 
 
 class VendorOrderItemsView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         if not request.user.is_staff:
@@ -120,6 +119,23 @@ class VendorOrderItemsView(APIView):
 
 
 
+
+
+class UserOrder(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, product_id):
+        user = request.user
+        has_purchased = OrderItem.objects.filter(
+            order__user=user,
+            product_id=product_id,
+            order__payment_completed=True
+        ).exists()
+
+        return Response({
+            'product_id': product_id,
+            'has_purchased': has_purchased
+        })
 
 class PaymobPaymentView(APIView):
     permission_classes = [IsAuthenticated]
