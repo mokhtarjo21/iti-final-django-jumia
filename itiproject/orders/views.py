@@ -11,8 +11,7 @@ from django.conf import settings  # ✅ Required
 
 
 from products.models import Product
-from .models import Order, OrderItem
-
+from .models import *
 
 class CheckoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -107,7 +106,7 @@ class VendorOrderItemsView(APIView):
         if not request.user.is_staff:
             return Response({"error": "Unauthorized"}, status=403)
 
-        item = get_object_or_404(OrderItem, pk=pk, order__vendor=request.user)
+        item = get_object_or_404(OrderItem, id=pk, order__vendor=request.user)
 
         new_status = request.data.get("status")
         print(new_status)
