@@ -9,20 +9,6 @@ from django.dispatch import receiver
 
 from django.core.exceptions import ValidationError  
 
-class Comment(models.Model):
-    """
-    Comments on projects with optional replies
-    """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-   
-  
-    
-    def __str__(self):
-        return f"Comment by {self.user.first_name} {self.user.last_name} on {self.product.name}"
 
 
 class Rating(models.Model):
@@ -31,6 +17,7 @@ class Rating(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
+    content = models.TextField( null=True, blank=True)
     value = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="Rating from 1 to 5 stars"
