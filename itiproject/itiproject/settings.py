@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
 
     'products.apps.ProductsConfig',
-
+    'chatgpt.apps.ChatgptConfig',
     'comment_rating.apps.CommentRatingConfig',
     'home.apps.HomeConfig',
     'cart',

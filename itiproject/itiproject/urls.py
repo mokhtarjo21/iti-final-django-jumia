@@ -11,7 +11,7 @@ urlpatterns = [
 
     path('api/',include('products.urls')),
     path('comment/api/',include('comment_rating.urls')),
-
+    path('api/chat/',include('chatgpt.urls')),
     path('api/home/', include('home.urls')),
     path('api/', include('cart.urls')),  # Mn3m
     path('api/orders/', include('orders.urls')),#Mn3m
