@@ -400,117 +400,406 @@ class DatabasePopulator:
         colors = list(Color.objects.all())
         sizes = list(Size.objects.all())
         
-        product_templates = [
-            # Electronics - Smartphones
-            {
-                "category_name": "Android Phones",
+        # Define product templates with more comprehensive data
+        product_templates = {
+            # Electronics - Smartphones (15 products each)
+            "Android Phones": {
                 "brand_names": ["Samsung", "Xiaomi", "OnePlus", "Google", "Motorola"],
                 "products": [
-                    {"name": "Galaxy S23 Ultra", "price": 1199.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Mi 13 Pro", "price": 899.99, "has_sizes": False, "has_colors": True},
-                    {"name": "OnePlus 11", "price": 699.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Pixel 7 Pro", "price": 899.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Edge 30 Ultra", "price": 799.99, "has_sizes": False, "has_colors": True},
+                    {
+                        "name": "Galaxy S23 Ultra",
+                        "price": 45000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.8,
+                        "specifications": {
+                            "display": "6.8-inch Dynamic AMOLED 2X",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "200MP + 12MP + 10MP + 10MP",
+                            "battery": "5000mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.233,
+                        "dimensions": {"length": 163.4, "width": 78.1, "height": 8.9}
+                    },
+                    {
+                        "name": "Galaxy S23+",
+                        "price": 35000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.7,
+                        "specifications": {
+                            "display": "6.6-inch Dynamic AMOLED 2X",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "8GB",
+                            "storage": "256GB",
+                            "camera": "108MP + 12MP + 10MP",
+                            "battery": "4800mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.198,
+                        "dimensions": {"length": 157.2, "width": 73.8, "height": 8.2}
+                    },
+                    {
+                        "name": "Galaxy S23",
+                        "price": 28000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.6,
+                        "specifications": {
+                            "display": "6.1-inch Dynamic AMOLED 2X",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "8GB",
+                            "storage": "128GB",
+                            "camera": "12MP + 10MP + 10MP",
+                            "battery": "3900mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.172,
+                        "dimensions": {"length": 146.9, "width": 70.9, "height": 7.6}
+                    },
+                    {
+                        "name": "Galaxy Z Fold 5",
+                        "price": 65000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.5,
+                        "specifications": {
+                            "display": "7.6-inch Dynamic AMOLED 2X",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP + 10MP",
+                            "battery": "4400mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.272,
+                        "dimensions": {"length": 128.2, "width": 159.2, "height": 6.1}
+                    },
+                    {
+                        "name": "Galaxy Z Flip 5",
+                        "price": 35000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.4,
+                        "specifications": {
+                            "display": "6.7-inch Dynamic AMOLED 2X",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "8GB",
+                            "storage": "256GB",
+                            "camera": "12MP + 12MP",
+                            "battery": "3700mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.187,
+                        "dimensions": {"length": 165.2, "width": 72.2, "height": 7.2}
+                    },
+                    {
+                        "name": "Mi 13 Pro",
+                        "price": 32000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.2,
+                        "specifications": {
+                            "display": "6.3-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "200MP + 12MP + 10MP",
+                            "battery": "4800mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.192,
+                        "dimensions": {"length": 152.7, "width": 72.8, "height": 8.1}
+                    },
+                    {
+                        "name": "Mi 13",
+                        "price": 25000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.1,
+                        "specifications": {
+                            "display": "6.3-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "8GB",
+                            "storage": "128GB",
+                            "camera": "108MP + 12MP",
+                            "battery": "4500mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.172,
+                        "dimensions": {"length": 152.7, "width": 72.8, "height": 7.6}
+                    },
+                    {
+                        "name": "Mi 13T Pro",
+                        "price": 28000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.0,
+                        "specifications": {
+                            "display": "6.3-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "200MP + 12MP + 10MP",
+                            "battery": "4800mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.192,
+                        "dimensions": {"length": 152.7, "width": 72.8, "height": 8.1}
+                    },
+                    {
+                        "name": "OnePlus 11",
+                        "price": 26000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.3,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "16GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP",
+                            "battery": "5000mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.206,
+                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
+                    },
+                    {
+                        "name": "OnePlus 11R",
+                        "price": 22000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.2,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "16GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP",
+                            "battery": "4800mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.198,
+                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
+                    },
+                    {
+                        "name": "Pixel 7 Pro",
+                        "price": 33000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.4,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Google Tensor G2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP",
+                            "battery": "5000mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.218,
+                        "dimensions": {"length": 158.6, "width": 76.2, "height": 8.9}
+                    },
+                    {
+                        "name": "Pixel 7",
+                        "price": 22000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 4.3,
+                        "specifications": {
+                            "display": "6.3-inch AMOLED",
+                            "processor": "Google Tensor G2",
+                            "ram": "8GB",
+                            "storage": "128GB",
+                            "camera": "50MP + 12MP",
+                            "battery": "4300mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.176,
+                        "dimensions": {"length": 155.6, "width": 72.6, "height": 7.6}
+                    },
+                    {
+                        "name": "Edge 30 Ultra",
+                        "price": 29000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 3.9,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP",
+                            "battery": "5000mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.218,
+                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
+                    },
+                    {
+                        "name": "Edge 30 Pro",
+                        "price": 25000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 3.8,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "12GB",
+                            "storage": "256GB",
+                            "camera": "50MP + 12MP + 10MP",
+                            "battery": "4800mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.206,
+                        "dimensions": {"length": 158.6, "width": 76.2, "height": 8.9}
+                    },
+                    {
+                        "name": "Edge 30",
+                        "price": 18000,
+                        "has_sizes": False,
+                        "has_colors": True,
+                        "rating": 3.7,
+                        "specifications": {
+                            "display": "6.7-inch AMOLED",
+                            "processor": "Snapdragon 8 Gen 2",
+                            "ram": "8GB",
+                            "storage": "128GB",
+                            "camera": "50MP + 12MP",
+                            "battery": "4500mAh",
+                            "os": "Android 13",
+                            "warranty": "2 years"
+                        },
+                        "weight": 0.172,
+                        "dimensions": {"length": 155.6, "width": 72.6, "height": 7.6}
+                    },
                 ]
             },
-            {
-                "category_name": "iPhones",
+            "iPhones": {
                 "brand_names": ["Apple"],
                 "products": [
-                    {"name": "iPhone 15 Pro Max", "price": 1199.99, "has_sizes": False, "has_colors": True},
-                    {"name": "iPhone 15 Pro", "price": 999.99, "has_sizes": False, "has_colors": True},
-                    {"name": "iPhone 15 Plus", "price": 899.99, "has_sizes": False, "has_colors": True},
-                    {"name": "iPhone 15", "price": 799.99, "has_sizes": False, "has_colors": True},
-                    {"name": "iPhone 14", "price": 699.99, "has_sizes": False, "has_colors": True},
+                    {"name": "iPhone 15 Pro Max", "price": 65000, "has_sizes": False, "has_colors": True, "rating": 4.9},
+                    {"name": "iPhone 15 Pro", "price": 55000, "has_sizes": False, "has_colors": True, "rating": 4.8},
+                    {"name": "iPhone 15 Plus", "price": 48000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPhone 15", "price": 42000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPhone 14 Pro Max", "price": 58000, "has_sizes": False, "has_colors": True, "rating": 4.8},
+                    {"name": "iPhone 14 Pro", "price": 48000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPhone 14 Plus", "price": 42000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPhone 14", "price": 36000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                    {"name": "iPhone 13 Pro Max", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPhone 13 Pro", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPhone 13", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                    {"name": "iPhone SE (3rd gen)", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.2},
+                    {"name": "iPhone 12 Pro Max", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.4},
+                    {"name": "iPhone 12 Pro", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.3},
+                    {"name": "iPhone 12", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.2},
                 ]
             },
-            # Electronics - Laptops
-            {
-                "category_name": "Gaming Laptops",
+            # Tablets (15 products each)
+            "Android Tablets": {
+                "brand_names": ["Samsung", "Lenovo", "Xiaomi", "Huawei"],
+                "products": [
+                    {"name": "Galaxy Tab S9 Ultra", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.8},
+                    {"name": "Galaxy Tab S9+", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "Galaxy Tab S9", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "Galaxy Tab S8 Ultra", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "Galaxy Tab S8+", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "Lenovo Tab P12 Pro", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.3},
+                    {"name": "Lenovo Tab P11 Pro", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.2},
+                    {"name": "Lenovo Tab P11", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.1},
+                    {"name": "Xiaomi Pad 6 Pro", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.4},
+                    {"name": "Xiaomi Pad 6", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.3},
+                    {"name": "Huawei MatePad Pro", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.2},
+                    {"name": "Huawei MatePad", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.1},
+                    {"name": "Galaxy Tab A9+", "price": 15000, "has_sizes": False, "has_colors": True, "rating": 4.0},
+                    {"name": "Lenovo Tab M10 Plus", "price": 12000, "has_sizes": False, "has_colors": True, "rating": 3.9},
+                    {"name": "Xiaomi Pad 5", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.1},
+                ]
+            },
+            "iPads": {
+                "brand_names": ["Apple"],
+                "products": [
+                    {"name": "iPad Pro 12.9-inch", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.9},
+                    {"name": "iPad Pro 11-inch", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.8},
+                    {"name": "iPad Air", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPad", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPad mini", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPad Pro 12.9-inch (5th gen)", "price": 40000, "has_sizes": False, "has_colors": True, "rating": 4.8},
+                    {"name": "iPad Pro 11-inch (3rd gen)", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPad Air (4th gen)", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPad (9th gen)", "price": 15000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                    {"name": "iPad mini (6th gen)", "price": 20000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPad Pro 12.9-inch (4th gen)", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.7},
+                    {"name": "iPad Pro 11-inch (2nd gen)", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.6},
+                    {"name": "iPad Air (3rd gen)", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                    {"name": "iPad (8th gen)", "price": 14000, "has_sizes": False, "has_colors": True, "rating": 4.4},
+                    {"name": "iPad mini (5th gen)", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                ]
+            },
+            # Other categories (3 products each)
+            "Gaming Laptops": {
                 "brand_names": ["Dell", "HP", "Asus", "MSI", "Lenovo"],
                 "products": [
-                    {"name": "Alienware m16", "price": 2499.99, "has_sizes": False, "has_colors": False},
-                    {"name": "ROG Strix G16", "price": 1899.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Omen 16", "price": 1699.99, "has_sizes": False, "has_colors": False},
-                    {"name": "GE76 Raider", "price": 2299.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Legion Pro 7", "price": 1999.99, "has_sizes": False, "has_colors": False},
+                    {"name": "Alienware m16", "price": 85000, "has_sizes": False, "has_colors": False, "rating": 4.8},
+                    {"name": "ROG Strix G16", "price": 65000, "has_sizes": False, "has_colors": False, "rating": 4.7},
+                    {"name": "Legion Pro 7", "price": 70000, "has_sizes": False, "has_colors": False, "rating": 4.6},
                 ]
             },
-            # Fashion - Men's Clothing
-            {
-                "category_name": "T-shirts",
+            "T-shirts": {
                 "brand_names": ["Nike", "Adidas", "Gap", "H&M", "Uniqlo"],
                 "products": [
-                    {"name": "Classic Logo Tee", "price": 29.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Sport Performance Tee", "price": 39.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Vintage Graphic Tee", "price": 24.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Essential Crew Neck", "price": 19.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Premium Cotton Tee", "price": 34.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Classic Logo Tee", "price": 1200, "has_sizes": True, "has_colors": True, "rating": 4.5},
+                    {"name": "Sport Performance Tee", "price": 1500, "has_sizes": True, "has_colors": True, "rating": 4.4},
+                    {"name": "Vintage Graphic Tee", "price": 1000, "has_sizes": True, "has_colors": True, "rating": 4.3},
                 ]
             },
-            {
-                "category_name": "Jeans",
-                "brand_names": ["Levi's", "Wrangler", "Lee", "Calvin Klein", "Tommy Hilfiger"],
-                "products": [
-                    {"name": "501 Original Fit", "price": 69.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Classic Straight Fit", "price": 59.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Slim Fit Stretch", "price": 64.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Premium Denim", "price": 79.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Relaxed Fit", "price": 54.99, "has_sizes": True, "has_colors": True},
-                ]
-            },
-            # Fashion - Women's Clothing
-            {
-                "category_name": "Dresses",
+            "Dresses": {
                 "brand_names": ["Zara", "H&M", "Uniqlo", "Forever 21", "Mango"],
                 "products": [
-                    {"name": "Floral Summer Dress", "price": 49.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Little Black Dress", "price": 69.99, "has_sizes": True, "has_colors": False},
-                    {"name": "Maxi Beach Dress", "price": 59.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Casual Wrap Dress", "price": 44.99, "has_sizes": True, "has_colors": True},
-                    {"name": "Evening Gown", "price": 89.99, "has_sizes": True, "has_colors": True},
+                    {"name": "Floral Summer Dress", "price": 2500, "has_sizes": True, "has_colors": True, "rating": 4.6},
+                    {"name": "Little Black Dress", "price": 3500, "has_sizes": True, "has_colors": False, "rating": 4.7},
+                    {"name": "Maxi Beach Dress", "price": 2800, "has_sizes": True, "has_colors": True, "rating": 4.5},
                 ]
             },
-            # Home & Kitchen
-            {
-                "category_name": "Sofas",
+            "Sofas": {
                 "brand_names": ["IKEA", "Ashley", "Pottery Barn", "West Elm", "Crate & Barrel"],
                 "products": [
-                    {"name": "EKTORP 3-seat Sofa", "price": 599.99, "has_sizes": False, "has_colors": True},
-                    {"name": "KIVIK Corner Sofa", "price": 899.99, "has_sizes": False, "has_colors": True},
-                    {"name": "SÖDERHAMN Modular Sofa", "price": 799.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Modern Sectional", "price": 1299.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Leather Recliner Sofa", "price": 1499.99, "has_sizes": False, "has_colors": True},
+                    {"name": "EKTORP 3-seat Sofa", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.4},
+                    {"name": "KIVIK Corner Sofa", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.5},
+                    {"name": "SÖDERHAMN Modular Sofa", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.3},
                 ]
             },
-            # Beauty & Personal Care
-            {
-                "category_name": "Moisturizers",
+            "Moisturizers": {
                 "brand_names": ["L'Oreal", "Neutrogena", "Clinique", "CeraVe", "La Roche-Posay"],
                 "products": [
-                    {"name": "Hydra-Boost Daily Moisturizer", "price": 24.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Anti-Aging Night Cream", "price": 49.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Oil-Free Face Lotion", "price": 19.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Ceramide Moisturizing Cream", "price": 29.99, "has_sizes": False, "has_colors": False},
-                    {"name": "Hydrating Face Cream", "price": 34.99, "has_sizes": False, "has_colors": False},
+                    {"name": "Hydra-Boost Daily Moisturizer", "price": 800, "has_sizes": False, "has_colors": False, "rating": 4.6},
+                    {"name": "Anti-Aging Night Cream", "price": 1500, "has_sizes": False, "has_colors": False, "rating": 4.7},
+                    {"name": "Oil-Free Face Lotion", "price": 600, "has_sizes": False, "has_colors": False, "rating": 4.5},
                 ]
             },
-            {
-                "category_name": "Lipstick",
-                "brand_names": ["MAC", "Maybelline", "L'Oreal", "Revlon", "NYX"],
-                "products": [
-                    {"name": "Matte Lipstick Collection", "price": 22.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Long-Lasting Lip Color", "price": 14.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Moisturizing Lipstick", "price": 18.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Liquid Lipstick", "price": 16.99, "has_sizes": False, "has_colors": True},
-                    {"name": "Satin Finish Lipstick", "price": 20.99, "has_sizes": False, "has_colors": True},
-                ]
-            },
-        ]
+        }
         
-        for template in product_templates:
+        for category_name, template in product_templates.items():
             # Find category
-            category = Category.objects.filter(name=template["category_name"]).first()
+            category = Category.objects.filter(name=category_name).first()
             if not category:
                 continue
                 
@@ -542,27 +831,77 @@ class DatabasePopulator:
                     # Generate realistic description based on category and product
                     description = self.generate_product_description(category, product_data["name"], brand)
                     
-                    # Generate specifications based on category
-                    specifications = self.generate_product_specifications(category, product_data["name"])
+                    # Get specifications from product data or generate them
+                    specifications = product_data.get("specifications", self.generate_product_specifications(category, product_data["name"]))
                     
+                    # Calculate random quantity sold based on rating
+                    quantity_sold = int(product_data["rating"] * 100) + random.randint(0, 500)
+                    
+                    # Calculate rating count based on rating (higher ratings = more reviews)
+                    rating_count = int(product_data["rating"] * 200) + random.randint(50, 500)
+                    
+                    # Calculate stock quantity based on category and price
+                    if "Electronics" in category.name:
+                        stock_quantity = random.randint(5, 50)  # Lower stock for expensive electronics
+                    else:
+                        stock_quantity = random.randint(20, 200)
+                    
+                    # Get dimensions from product data or generate them
+                    dimensions = product_data.get("dimensions", {})
+                    
+                    # Create the product with all fields
                     product = Product.objects.create(
+                        # Basic Information
                         name=f"{brand.name} {product_data['name']}",
                         slug=slugify(f"{brand.name}-{product_data['name']}-{sku}"),
                         sku=sku,
                         category=category,
                         brand=brand,
+                        
+                        # Descriptions
                         description=description,
+                        specifications=specifications,
+                        
+                        # Pricing
                         price=base_price,
                         sale_price=sale_price,
                         sale_start_date=sale_start,
                         sale_end_date=sale_end,
-                        stock_quantity=random.randint(20, 200),
+                        
+                        # Inventory
+                        stock_quantity=stock_quantity,
+                        quantity_sold=quantity_sold,
+                        track_inventory=True,
+                        allow_backorder=False,
+                        
+                        # Shipping
+                        weight=Decimal(str(product_data.get("weight", random.uniform(0.1, 5.0)))),
+                        length=Decimal(str(dimensions.get("length", random.uniform(10, 100)))),
+                        width=Decimal(str(dimensions.get("width", random.uniform(10, 100)))),
+                        height=Decimal(str(dimensions.get("height", random.uniform(10, 100)))),
+                        
+                        # Features
                         is_featured=random.random() < 0.2,  # 20% chance of being featured
-                        specifications=specifications,
-                        weight=Decimal(random.uniform(0.1, 5.0)).quantize(Decimal('0.001')),
+                        is_sponsored=random.random() < 0.1,  # 10% chance of being sponsored
+                        
+                        # SEO
                         meta_title=f"Buy {brand.name} {product_data['name']} Online",
                         meta_description=f"Shop for {brand.name} {product_data['name']} at the best prices. "
                                        f"Free shipping available. 100% authentic products.",
+                        meta_keywords=f"{brand.name}, {product_data['name']}, {category.name}, "
+                                    f"{category.parent.name if category.parent else ''}",
+                        
+                        # Ratings
+                        rating_average=Decimal(str(product_data["rating"])),
+                        rating_count=rating_count,
+                        
+                        # Launch date
+                        launched_at=timezone.now() - timedelta(days=random.randint(0, 365)),
+                        
+                        # Material (for fashion products)
+                        material=random.choice(["Cotton", "Polyester", "Wool", "Leather", "Denim", "Silk", "Linen"])
+                        if category.parent and category.parent.parent and category.parent.parent.name == "Fashion"
+                        else ""
                     )
                     
                     # Add sizes if applicable
@@ -583,12 +922,6 @@ class DatabasePopulator:
                         num_colors = random.randint(2, 5)
                         selected_colors = random.sample(colors, min(num_colors, len(colors)))
                         product.colors.set(selected_colors)
-                    
-                    # Set material if it's a fashion product
-                    if category.parent and category.parent.parent and category.parent.parent.name == "Fashion":
-                        materials = ["Cotton", "Polyester", "Wool", "Leather", "Denim", "Silk", "Linen"]
-                        product.material = random.choice(materials)
-                        product.save()
                     
                     # Create product images (use default image)
                     for i in range(random.randint(3, 5)):
