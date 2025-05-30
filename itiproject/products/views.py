@@ -17,6 +17,10 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Min, Max, Sum
 from users.models import User
+# Add caching imports
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 # Create your views here.
 
 def get_descendant_ids(category):
@@ -146,6 +150,7 @@ class CategoryProductsView(APIView):
             return Response({"error": "Category not found"}, status=404)
 
 # List all categories as a tree
+@method_decorator(cache_page(60 * 10), name='get')  # Cache for 15 minutes
 class CategoryTreeView(generics.ListAPIView):
     queryset = Category.objects.filter(parent__isnull=True)
     serializer_class = CategoryListSerializer
@@ -204,59 +209,6 @@ class ProductDeleteView(generics.DestroyAPIView):
     serializer_class = ProductCreateUpdateSerializer
     lookup_field = 'pk'
 
-# class ProductSearchView(APIView):
-#     def get(self, request):
-#         # Get the search query from URL parameters
-#         search_query = request.GET.get('q', '')
-        
-#         if not search_query:
-#             return Response({"error": "Please provide a search query"}, status=400)
-            
-#         # Search in multiple fields
-#         products = Product.objects.filter(
-#             Q(name__icontains=search_query) |
-#             Q(description__icontains=search_query) |
-#             Q(brand__name__icontains=search_query) |
-#             Q(category__name__icontains=search_query)
-#         ).distinct()
-#             # Apply filters similar to CategoryProductsView
-#         brand = request.GET.get('brand')
-#         if brand:
-#             brand_names = brand.split(',')
-#             products = products.filter(brand__name__in=brand_names)
-
-#         color = request.GET.get('color')
-#         if color:
-#             color_names = color.split(',')
-#             products = products.filter(colors__name__in=color_names)
-
-#         min_price = request.GET.get('min_price')
-#         if min_price:
-#             products = products.filter(price__gte=min_price)
-        
-#         max_price = request.GET.get('max_price')
-#         if max_price:
-#             products = products.filter(price__lte=max_price)
-
-#         # appending total number of products to the response
-#         total_count = products.count()
-#         # Pagination
-#         paginator = PageNumberPagination()
-#         paginator.page_size = 4  # Number of products per page
-#         paginated_products = paginator.paginate_queryset(products, request)
-#         serializer = ProductListSerializer(paginated_products, many=True)
-        
-#         # Add total products to the response by creating a custom response
-#         response_data = {
-#             'count': total_count,  
-#             'results': serializer.data,
-#             'next': paginator.get_next_link(),
-#             'previous': paginator.get_previous_link(),
-#             'current_page': paginator.page.number,
-#             'total_pages': paginator.page.paginator.num_pages,
-#             'page_size': paginator.page_size
-#         }
-#         return Response(response_data)
 
 class SearchSuggestionsView(APIView):
     def get(self, request):
@@ -310,6 +262,9 @@ class SearchSuggestionsView(APIView):
 
 # converted product search into a general view for listing, searching, and filtering by recentlyadded, sponsered
 # , brand-slug, minprice, highprice and color in products
+@method_decorator(cache_page(60 * 5), name='get')  # Cache for 5 minutes
+@method_decorator(vary_on_headers("Authorization"), name='get')
+@method_decorator(vary_on_cookie, name='get')
 class ProductListView(APIView):
     def get(self, request):
         products = Product.objects.all()
