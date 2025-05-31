@@ -171,7 +171,7 @@ class PaymobPaymentView(APIView):
 
             iframe_url = (
                f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}"
-               f"?payment_token={payment_token}&return_url=http://localhost:3000/payment-success"
+               f"?payment_token={payment_token}&return_url={settings.FRONTEND_PAYMENT_SUCCESS_URL}"
 )
 
 
