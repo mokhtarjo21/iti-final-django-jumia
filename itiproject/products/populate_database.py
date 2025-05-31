@@ -711,145 +711,109 @@ class Command(BaseCommand):
                     self.stdout.write(f"    {'Created' if created else 'Found'} child category: {child_cat.name}")
     
     def create_brands(self):
-        """Create brands with proper attributes"""
-        brands_data = {
+        """Create brands with proper attributes and organized by category"""
+        # Define brands categorized by product type
+        categorized_brands = {
             "Electronics": [
-                {"name": "Samsung Electronics", "image": "brand_images/samsung.jpg"},
-                {"name": "Apple", "image": "brand_images/apple.jpg"},
-                {"name": "Sony", "image": "brand_images/sony.jpg"},
-                {"name": "LG Electronics", "image": "brand_images/lg.jpg"},
-                {"name": "Xiaomi", "image": "brand_images/xiaomi.jpg"},
-                {"name": "Huawei", "image": "brand_images/huawei.jpg"},
-                {"name": "OnePlus", "image": "brand_images/oneplus.jpg"},
-                {"name": "Google", "image": "brand_images/google.jpg"},
-                {"name": "Microsoft", "image": "brand_images/microsoft.jpg"},
-                {"name": "Asus", "image": "brand_images/asus.jpg"}
+                "Samsung Electronics", "Apple", "Sony", "LG Electronics", "Xiaomi", 
+                "Huawei", "OnePlus", "Google", "Microsoft", "Asus", "Lenovo", 
+                "HP", "Dell", "Acer", "MSI", "Toshiba", "Philips", "Sharp", 
+                "Panasonic", "Canon", "Nikon", "JBL", "Bose", "Logitech", "Vizio"
             ],
             "Fashion": [
-                {"name": "Nike", "image": "brand_images/nike.jpg"},
-                {"name": "Adidas", "image": "brand_images/adidas.jpg"},
-                {"name": "Zara", "image": "brand_images/zara.jpg"},
-                {"name": "H&M", "image": "brand_images/hm.jpg"},
-                {"name": "Gucci", "image": "brand_images/gucci.jpg"},
-                {"name": "Puma", "image": "brand_images/puma.jpg"},
-                {"name": "Under Armour", "image": "brand_images/underarmour.jpg"},
-                {"name": "Levi's", "image": "brand_images/levis.jpg"},
-                {"name": "Calvin Klein", "image": "brand_images/calvinklein.jpg"},
-                {"name": "Ralph Lauren", "image": "brand_images/ralphlauren.jpg"}
+                "Nike", "Adidas", "Zara", "H&M", "Gucci", "Puma", "Under Armour", 
+                "Levi's", "Calvin Klein", "Ralph Lauren", "Tommy Hilfiger", "Reebok", 
+                "New Balance", "Uniqlo", "Gap", "Lacoste", "Timberland", "Converse", 
+                "Vans", "Skechers", "Fila", "Diesel", "Armani", "Burberry"
             ],
             "Home & Kitchen": [
-                {"name": "IKEA", "image": "brand_images/ikea.jpg"},
-                {"name": "Bosch", "image": "brand_images/bosch.jpg"},
-                {"name": "Philips", "image": "brand_images/philips.jpg"},
-                {"name": "Dyson", "image": "brand_images/dyson.jpg"},
-                {"name": "KitchenAid", "image": "brand_images/kitchenaid.jpg"},
-                {"name": "Whirlpool", "image": "brand_images/whirlpool.jpg"},
-                {"name": "Samsung Home", "image": "brand_images/samsung.jpg"},
-                {"name": "LG Home", "image": "brand_images/lg.jpg"},
-                {"name": "Panasonic", "image": "brand_images/panasonic.jpg"},
-                {"name": "Sharp", "image": "brand_images/sharp.jpg"}
+                "IKEA", "Bosch", "Philips Home", "Dyson", "KitchenAid", "Whirlpool", 
+                "Samsung Home", "LG Home", "Panasonic Home", "Sharp Home", "Cuisinart", 
+                "Breville", "Ninja", "Crock-Pot", "Instant Pot", "OXO", "Pyrex", 
+                "Rubbermaid", "Tupperware", "Corelle", "Hamilton Beach", "Keurig", 
+                "Nespresso", "Vitamix"
             ],
             "Beauty & Personal Care": [
-                {"name": "L'Oreal", "image": "brand_images/loreal.jpg"},
-                {"name": "Maybelline", "image": "brand_images/maybelline.jpg"},
-                {"name": "MAC", "image": "brand_images/mac.jpg"},
-                {"name": "Nivea", "image": "brand_images/nivea.jpg"},
-                {"name": "Dove", "image": "brand_images/dove.jpg"},
-                {"name": "Garnier", "image": "brand_images/garnier.jpg"},
-                {"name": "Neutrogena", "image": "brand_images/neutrogena.jpg"},
-                {"name": "Revlon", "image": "brand_images/revlon.jpg"},
-                {"name": "Clinique", "image": "brand_images/clinique.jpg"},
-                {"name": "Estee Lauder", "image": "brand_images/esteelauder.jpg"}
+                "L'Oreal", "Maybelline", "MAC", "Nivea", "Dove", "Garnier", 
+                "Neutrogena", "Revlon", "Clinique", "Estee Lauder", "Olay", 
+                "CeraVe", "The Ordinary", "Pantene", "Head & Shoulders", "Colgate", 
+                "Gillette", "Oral-B", "Crest", "Aveeno", "Johnson & Johnson", 
+                "Bioderma", "La Roche-Posay", "Vichy"
             ],
             "Sports & Outdoors": [
-                {"name": "Nike Sports", "image": "brand_images/nike.jpg"},
-                {"name": "Adidas Sports", "image": "brand_images/adidas.jpg"},
-                {"name": "Under Armour Sports", "image": "brand_images/underarmour.jpg"},
-                {"name": "Puma Sports", "image": "brand_images/puma.jpg"},
-                {"name": "Reebok", "image": "brand_images/reebok.jpg"},
-                {"name": "New Balance", "image": "brand_images/newbalance.jpg"},
-                {"name": "The North Face", "image": "brand_images/thenorthface.jpg"},
-                {"name": "Columbia", "image": "brand_images/columbia.jpg"},
-                {"name": "Asics", "image": "brand_images/asics.jpg"},
-                {"name": "Mizuno", "image": "brand_images/mizuno.jpg"}
+                "Nike Sports", "Adidas Sports", "Under Armour Sports", "Puma Sports", 
+                "Reebok Sports", "New Balance Sports", "The North Face", "Columbia", 
+                "Asics", "Mizuno", "Wilson", "Spalding", "Coleman", "Yeti", 
+                "CamelBak", "Callaway", "Titleist", "Speedo", "Salomon", "Patagonia", 
+                "Merrell", "Brooks", "Fila Sports", "Oakley"
             ],
             "Gaming": [
-                {"name": "Sony Gaming", "image": "brand_images/sony.jpg"},
-                {"name": "Microsoft Gaming", "image": "brand_images/microsoft.jpg"},
-                {"name": "Nintendo", "image": "brand_images/nintendo.jpg"},
-                {"name": "Razer", "image": "brand_images/razer.jpg"},
-                {"name": "Logitech", "image": "brand_images/logitech.jpg"},
-                {"name": "SteelSeries", "image": "brand_images/steelseries.jpg"},
-                {"name": "Corsair", "image": "brand_images/corsair.jpg"},
-                {"name": "ASUS ROG", "image": "brand_images/asusrog.jpg"},
-                {"name": "Alienware", "image": "brand_images/alienware.jpg"},
-                {"name": "HyperX", "image": "brand_images/hyperx.jpg"}
+                "Sony Gaming", "Microsoft Gaming", "Nintendo", "Razer", "Logitech Gaming", 
+                "SteelSeries", "Corsair", "ASUS ROG", "Alienware", "HyperX", 
+                "MSI Gaming", "Turtle Beach", "Astro Gaming", "Roccat", "PowerA", 
+                "PDP", "Thrustmaster", "Scuf Gaming", "Elgato", "Blue Microphones", 
+                "NZXT", "Cooler Master", "Sennheiser Gaming", "Acer Predator"
             ],
             "Baby Products": [
-                {"name": "Pampers", "image": "brand_images/pampers.jpg"},
-                {"name": "Huggies", "image": "brand_images/huggies.jpg"},
-                {"name": "Johnson & Johnson", "image": "brand_images/johnson.jpg"},
-                {"name": "Gerber", "image": "brand_images/gerber.jpg"},
-                {"name": "Fisher-Price", "image": "brand_images/fisherprice.jpg"},
-                {"name": "Philips Avent", "image": "brand_images/philipsavent.jpg"},
-                {"name": "MAM", "image": "brand_images/mam.jpg"},
-                {"name": "NUK", "image": "brand_images/nuk.jpg"},
-                {"name": "Chicco", "image": "brand_images/chicco.jpg"},
-                {"name": "Graco", "image": "brand_images/graco.jpg"}
+                "Pampers", "Huggies", "Johnson & Johnson Baby", "Gerber", "Fisher-Price", 
+                "Philips Avent", "MAM", "NUK", "Chicco", "Graco", "Baby Jogger", 
+                "Medela", "Dr. Brown's", "Enfamil", "Similac", "Baby Trend", "Munchkin", 
+                "Safety 1st", "Evenflo", "Britax", "Ergobaby", "Babybjorn", "Maxi-Cosi", 
+                "Ingenuity"
             ],
             "Computing": [
-                {"name": "Dell", "image": "brand_images/dell.jpg"},
-                {"name": "HP", "image": "brand_images/hp.jpg"},
-                {"name": "Lenovo", "image": "brand_images/lenovo.jpg"},
-                {"name": "ASUS Computing", "image": "brand_images/asus.jpg"},
-                {"name": "Acer", "image": "brand_images/acer.jpg"},
-                {"name": "MSI", "image": "brand_images/msi.jpg"},
-                {"name": "Intel", "image": "brand_images/intel.jpg"},
-                {"name": "AMD", "image": "brand_images/amd.jpg"},
-                {"name": "Western Digital", "image": "brand_images/wd.jpg"},
-                {"name": "Seagate", "image": "brand_images/seagate.jpg"}
+                "Dell Computing", "HP Computing", "Lenovo Computing", "ASUS Computing", 
+                "Acer Computing", "MSI Computing", "Intel", "AMD", "Western Digital", 
+                "Seagate", "SanDisk", "Crucial", "Corsair Computing", "NVIDIA", 
+                "Kingston", "Netgear", "TP-Link", "D-Link", "Linksys", "Logitech Computing", 
+                "Microsoft Computing", "Apple Computing", "Samsung Computing", "LG Computing"
             ],
             "Phones & Tablets": [
-                {"name": "Apple Mobile", "image": "brand_images/apple.jpg"},
-                {"name": "Samsung Mobile", "image": "brand_images/samsung.jpg"},
-                {"name": "Xiaomi Mobile", "image": "brand_images/xiaomi.jpg"},
-                {"name": "Huawei Mobile", "image": "brand_images/huawei.jpg"},
-                {"name": "OnePlus Mobile", "image": "brand_images/oneplus.jpg"},
-                {"name": "Google Mobile", "image": "brand_images/google.jpg"},
-                {"name": "OPPO", "image": "brand_images/oppo.jpg"},
-                {"name": "Vivo", "image": "brand_images/vivo.jpg"},
-                {"name": "Realme", "image": "brand_images/realme.jpg"},
-                {"name": "Nothing", "image": "brand_images/nothing.jpg"}
+                "Apple Mobile", "Samsung Mobile", "Xiaomi Mobile", "Huawei Mobile", 
+                "OnePlus Mobile", "Google Mobile", "OPPO", "Vivo", "Realme", "Nothing", 
+                "Motorola", "Nokia", "Sony Mobile", "LG Mobile", "Asus Mobile", 
+                "Lenovo Mobile", "TCL", "ZTE", "HTC", "BlackBerry", "Honor", 
+                "Infinix", "Tecno", "Amazon Tablets"
             ],
             "Appliances": [
-                {"name": "Samsung Appliances", "image": "brand_images/samsung.jpg"},
-                {"name": "LG Appliances", "image": "brand_images/lg.jpg"},
-                {"name": "Bosch Appliances", "image": "brand_images/bosch.jpg"},
-                {"name": "Whirlpool", "image": "brand_images/whirlpool.jpg"},
-                {"name": "Electrolux", "image": "brand_images/electrolux.jpg"},
-                {"name": "Miele", "image": "brand_images/miele.jpg"},
-                {"name": "Panasonic Appliances", "image": "brand_images/panasonic.jpg"},
-                {"name": "Sharp Appliances", "image": "brand_images/sharp.jpg"},
-                {"name": "Philips Appliances", "image": "brand_images/philips.jpg"},
-                {"name": "Dyson Appliances", "image": "brand_images/dyson.jpg"}
+                "Samsung Appliances", "LG Appliances", "Bosch Appliances", "Whirlpool", 
+                "Electrolux", "Miele", "Panasonic Appliances", "Sharp Appliances", 
+                "Philips Appliances", "Dyson Appliances", "GE Appliances", "Frigidaire", 
+                "Kenmore", "Haier", "Maytag", "KitchenAid Appliances", "Smeg", 
+                "Midea", "Hitachi", "Toshiba Appliances", "Breville Appliances", 
+                "DeLonghi", "Ninja Appliances", "Tefal"
+            ],
+            "Supermarket": [
+                "Nestle", "Procter & Gamble", "Unilever", "Coca-Cola", "PepsiCo", 
+                "Kraft Heinz", "Kellogg's", "General Mills", "Mars", "Colgate-Palmolive", 
+                "Danone", "Mondelez", "Hershey's", "Campbell's", "Heineken", 
+                "Johnson & Johnson Consumer", "Reckitt Benckiser", "Clorox", "SC Johnson", 
+                "L'Oreal Consumer", "Henkel", "Kimberly-Clark", "Tyson Foods", "ConAgra"
             ]
         }
-
-        # Create brands
-        for category, brands in brands_data.items():
-            for brand_data in brands:
+        
+        # Create all brands
+        all_brands = []
+        for category, brands in categorized_brands.items():
+            for brand_name in brands:
                 try:
                     # Try to get existing brand
-                    brand = Brand.objects.get(name=brand_data["name"])
+                    brand = Brand.objects.get(name=brand_name)
                     self.stdout.write(f"Found existing brand: {brand.name}")
                 except Brand.DoesNotExist:
                     # Create new brand if it doesn't exist
                     brand = Brand(
-                        name=brand_data["name"],
+                        name=brand_name,
                         image="default.jpg"
                     )
                     brand.save()  # This will trigger the save() method and generate the slug
                     self.stdout.write(f"Created new brand: {brand.name}")
+                
+                all_brands.append(brand)
+        
+        # Store the categorized brands for use in product creation
+        self.categorized_brands = categorized_brands
+        self.stdout.write(self.style.SUCCESS(f"Created/found {len(all_brands)} brands in total"))
     
     def create_products(self):
         """Create products with realistic data for each leaf category (10 products per category)"""
@@ -861,8 +825,7 @@ class Command(BaseCommand):
         
         self.stdout.write(f"Found {len(leaf_categories)} leaf categories")
         
-        # Get all brands
-        brands = Brand.objects.all()
+        # Get all sizes and colors
         sizes = Size.objects.all()
         colors = Color.objects.all()
         
@@ -873,24 +836,6 @@ class Command(BaseCommand):
         features = ["Plus", "Pro", "Ultra", "Max", "Elite", "Series", "Edition", "Collection", "Line", 
                    "Signature", "Limited", "Special", "Enhanced", "Improved", "NextGen"]
         
-        # Define category-brand mapping for more logical brand selection
-        category_brand_mapping = {
-            "Electronics": ["Samsung Electronics", "Apple", "Sony", "LG Electronics", "Xiaomi", "Huawei", "OnePlus", "Google", "Microsoft", "Asus"],
-            "Fashion": ["Nike", "Adidas", "Zara", "H&M", "Gucci", "Puma", "Under Armour", "Levi's", "Calvin Klein", "Ralph Lauren"],
-            "Home & Furniture": ["IKEA", "Bosch", "Philips", "Dyson", "KitchenAid", "Whirlpool", "Samsung Home", "LG Home", "Panasonic", "Sharp"],
-            "Beauty & Personal Care": ["L'Oreal", "Maybelline", "MAC", "Nivea", "Dove", "Garnier", "Neutrogena", "Revlon", "Clinique", "Estee Lauder"],
-            "Sports & Outdoors": ["Nike Sports", "Adidas Sports", "Under Armour Sports", "Puma Sports", "Reebok", "New Balance", "The North Face", "Columbia", "Asics", "Mizuno"],
-            "Gaming": ["Sony Gaming", "Microsoft Gaming", "Nintendo", "Razer", "Logitech", "SteelSeries", "Corsair", "ASUS ROG", "Alienware", "HyperX"],
-            "Baby Products": ["Pampers", "Huggies", "Johnson & Johnson", "Gerber", "Fisher-Price", "Philips Avent", "MAM", "NUK", "Chicco", "Graco"],
-            "Computing": ["Dell", "HP", "Lenovo", "ASUS Computing", "Acer", "MSI", "Intel", "AMD", "Western Digital", "Seagate"],
-            "Phones & Tablets": ["Apple Mobile", "Samsung Mobile", "Xiaomi Mobile", "Huawei Mobile", "OnePlus Mobile", "Google Mobile", "OPPO", "Vivo", "Realme", "Nothing"],
-            "Appliances": ["Samsung Appliances", "LG Appliances", "Bosch Appliances", "Whirlpool", "Electrolux", "Miele", "Panasonic Appliances", "Sharp Appliances", "Philips Appliances", "Dyson Appliances"],
-            "Health & Beauty": ["L'Oreal", "Maybelline", "MAC", "Nivea", "Dove", "Garnier", "Neutrogena", "Revlon", "Clinique", "Estee Lauder"],
-            "Sporting Goods": ["Nike Sports", "Adidas Sports", "Under Armour Sports", "Puma Sports", "Reebok", "New Balance", "The North Face", "Columbia", "Asics", "Mizuno"],
-            "Supermarket": ["Nestle", "Procter & Gamble", "Unilever", "Coca-Cola", "PepsiCo", "Kraft Heinz", "Kellogg's", "General Mills", "Mars", "Colgate-Palmolive"],
-            "Televisions & Audio": ["Samsung Electronics", "LG Electronics", "Sony", "Panasonic", "Sharp", "Philips", "TCL", "Hisense", "Bose", "JBL"],
-        }
-
         # Loop through each leaf category and create 10 products
         for category in leaf_categories:
             # Get the parent hierarchy to determine relevant brands
@@ -900,29 +845,50 @@ class Command(BaseCommand):
                 current = current.parent
                 hierarchy.append(current.name)
             
-            # Get relevant brands for this category based on mapping
-            relevant_brands = []
-            
-            # Find the most relevant parent category for mapping
-            mapped_category = None
+            # Find the most relevant category for brand selection
+            relevant_category = None
             for cat_name in hierarchy:
-                for mapping_key in category_brand_mapping.keys():
-                    if mapping_key.lower() in cat_name.lower() or cat_name.lower() in mapping_key.lower():
-                        mapped_category = mapping_key
+                for brand_category in self.categorized_brands.keys():
+                    if brand_category.lower() in cat_name.lower() or cat_name.lower() in brand_category.lower():
+                        relevant_category = brand_category
                         break
-                if mapped_category:
+                if relevant_category:
                     break
             
-            if mapped_category:
-                # Get brands from mapping
-                brand_names = category_brand_mapping[mapped_category]
-                for brand_name in brand_names:
-                    for brand in brands:
-                        if brand_name.lower() in brand.name.lower():
-                            relevant_brands.append(brand)
+            # If no direct match found, try to find a sensible fallback based on parent categories
+            if not relevant_category:
+                # Map common parent categories to brand categories
+                category_mapping = {
+                    "Health & Beauty": "Beauty & Personal Care",
+                    "Sporting Goods": "Sports & Outdoors",
+                    "Televisions & Audio": "Electronics",
+                    "Home & Furniture": "Home & Kitchen"
+                }
+                
+                for parent_cat in hierarchy:
+                    if parent_cat in category_mapping:
+                        relevant_category = category_mapping[parent_cat]
+                        break
             
-            if not relevant_brands:  # If no relevant brands found, use random brands
-                relevant_brands = random.sample(list(brands), min(5, brands.count()))
+            # If still no match, default to Electronics as fallback
+            if not relevant_category:
+                relevant_category = "Electronics"
+            
+            # Get brands for the selected category
+            brand_names = self.categorized_brands[relevant_category]
+            relevant_brands = []
+            
+            # Find the brand objects that match our selected names
+            for brand_name in brand_names:
+                try:
+                    brand = Brand.objects.get(name=brand_name)
+                    relevant_brands.append(brand)
+                except Brand.DoesNotExist:
+                    continue
+            
+            if not relevant_brands:  # Fallback if no brands found
+                self.stdout.write(self.style.WARNING(f"No relevant brands found for category '{category.name}', using random brands"))
+                relevant_brands = list(Brand.objects.all()[:5])
             
             # Create 10 products for this category
             for i in range(1, 11):
