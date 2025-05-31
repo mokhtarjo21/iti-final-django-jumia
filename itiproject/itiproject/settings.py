@@ -183,6 +183,9 @@ DATABASES = {
             }
 }
 
+
+
+FRONTEND_PAYMENT_SUCCESS_URL = "http://localhost:3000/payment-success" #mn3m
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
