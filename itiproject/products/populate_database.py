@@ -2,10 +2,13 @@
 import os
 import django
 import random
+import json
 from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta, datetime
 from decimal import Decimal
+from django.core.management.base import BaseCommand
+from django.core.cache import cache
 
 # Set up Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'itiproject.settings')
@@ -15,17 +18,20 @@ django.setup()
 # Import models after Django setup
 from products.models import Category, Brand, Product, ProductImage, Size, Color, FlashSale, FlashSaleItem
 
-class DatabasePopulator:
-    """Class to populate the database with product data"""
+class Command(BaseCommand):
+    help = 'Populates the database with initial data'
     
-    def __init__(self):
-        self.created_products = []
+    def handle(self, *args, **options):
+        self.stdout.write('Starting database population...')
     
-    def run(self):
-        print('Seeding data...')
+        # Clear all cache before populating
+        cache.clear()
+        self.stdout.write('Cache cleared.')
         
-        # Create sizes and colors
+        # Create sizes
         self.create_sizes()
+        
+        # Create colors
         self.create_colors()
         
         # Create categories
@@ -40,1013 +46,1265 @@ class DatabasePopulator:
         # Create flash sales
         self.create_flash_sales()
         
-        print('Successfully seeded database!')
+        # Clear cache again after populating
+        cache.clear()
+        self.stdout.write('Cache cleared after population.')
+        
+        self.stdout.write(self.style.SUCCESS('Database population completed successfully!'))
     
     def create_sizes(self):
         """Create size records using model choices"""
         for size_choice, _ in Size.SIZE_CHOICES:
             size, created = Size.objects.get_or_create(name=size_choice)
-            print(f"{'Created' if created else 'Found'} size: {size.name}")
+            self.stdout.write(f"{'Created' if created else 'Found'} size: {size.name}")
     
     def create_colors(self):
         """Create color records using model choices"""
         for color_choice, _ in Color.COLOR_CHOICES:
             color, created = Color.objects.get_or_create(name=color_choice)
-            print(f"{'Created' if created else 'Found'} color: {color.name}")
+            self.stdout.write(f"{'Created' if created else 'Found'} color: {color.name}")
     
     def create_categories(self):
-        """Create a comprehensive category hierarchy"""
-        categories_structure = {
-            "Electronics": {
+        """Create categories with proper hierarchy and all required attributes"""
+        # Define main categories with their subcategories and descriptions
+        categories_data = {
+            "Health & Beauty": {
+                "description": "Discover a wide range of health and beauty products for your personal care needs",
                 "children": {
-                    "Smartphones": {
-                        "children": [
-                            "Android Phones",
-                            "iPhones",
-                            "Budget Phones",
-                            "Gaming Phones",
-                            "Foldable Phones",
-                            "Business Phones"
-                        ]
+                    "Personal Care": {
+                        "description": "Essential personal care products for daily hygiene and wellness",
+                        "children": {
+                            "Oral Care": "Complete oral hygiene solutions including toothbrushes, toothpaste, and dental floss",
+                            "Feminine Care": "Comprehensive feminine hygiene products for women's health",
+                            "Shave & Hair Removal": "Professional shaving and hair removal products for smooth skin",
+                            "Deodorants": "Long-lasting deodorants and antiperspirants for all-day freshness",
+                            "Shower Gels": "Refreshing shower gels and body washes for daily cleansing",
+                            "Face Wash": "Gentle and effective face washes for all skin types"
+                        }
                     },
-                    "Laptops": {
-                        "children": [
-                            "Gaming Laptops",
-                            "Business Laptops",
-                            "Ultrabooks",
-                            "2-in-1 Laptops",
-                            "Student Laptops",
-                            "Workstation Laptops"
-                        ]
+                    "Skin Care": {
+                        "description": "Premium skincare products for healthy, radiant skin",
+                        "children": {
+                            "Body": "Nourishing body care products for soft, smooth skin",
+                            "Eyes": "Specialized eye care products for bright, youthful eyes",
+                            "Face": "Complete facial care solutions for all skin types",
+                            "Feet & Hands": "Intensive care products for soft hands and feet",
+                            "Sunscreens & Tanning oils": "Protection and tanning solutions for healthy skin"
+                        }
+                    },
+                    "Hair Care": {
+                        "description": "Professional hair care products for beautiful, healthy hair",
+                        "children": {
+                            "Styling Tools & Appliances": "Professional hair styling tools and appliances",
+                            "Hair Styling Products": "Premium hair styling products for perfect looks",
+                            "Shampoo, Conditioner & Serums": "Complete hair care solutions for all hair types",
+                            "Hair Coloring": "Professional hair coloring products and kits",
+                            "Extensions & Wigs": "High-quality hair extensions and wigs",
+                            "Hair Accessories": "Stylish hair accessories for every occasion"
+                        }
+                    },
+                    "Health Care": {
+                        "description": "Essential healthcare products for your wellbeing",
+                        "children": {
+                            "Wellness & Relaxation": "Products for stress relief and relaxation",
+                            "Sexual Wellness": "Discrete and essential sexual wellness products",
+                            "Medical Supplies & Equipment": "Professional medical supplies and equipment",
+                            "Contact Lenses & Solutions": "Quality contact lenses and care solutions"
+                        }
+                    },
+                    "Fragrance": {
+                        "description": "Luxury fragrances for every occasion",
+                        "children": {
+                            "Women's Perfumes & Body Splashes": "Elegant fragrances for women",
+                            "Men's Perfumes": "Sophisticated fragrances for men",
+                            "Children's Perfumes": "Gentle fragrances for children"
+                        }
+                    },
+                    "Makeup": {
+                        "description": "Professional makeup products for stunning looks",
+                        "children": {
+                            "Face Makeup": "Complete face makeup solutions",
+                            "Lip Makeup": "Beautiful lip colors and care products",
+                            "Eye Makeup": "Professional eye makeup products",
+                            "Makeup Remover": "Effective makeup removal solutions",
+                            "Makeup Brushes & Tools": "Professional makeup tools and brushes",
+                            "Nails": "Complete nail care and color products"
+                        }
+                    }
+                }
+            },
+            "Sporting Goods": {
+                "description": "High-quality sporting equipment and accessories for all your fitness needs",
+                "children": {
+                    "Cardio Training": {
+                        "description": "Professional cardio equipment for effective workouts",
+                        "children": {
+                            "Treadmills": "Premium treadmills for home and commercial use",
+                            "Exercise Bike": "Quality exercise bikes for cardio workouts",
+                            "Elliptical Trainers": "Advanced elliptical trainers for full-body workouts"
+                        }
+                    },
+                    "Strength Training Equipment": {
+                        "description": "Professional strength training equipment",
+                        "children": {
+                            "Dumbbells": "High-quality dumbbells for strength training",
+                            "Bars": "Professional weight bars and accessories",
+                            "Core & Abdominal Trainers": "Effective core and abdominal training equipment"
+                        }
+                    },
+                    "Outdoor & Adventure": {
+                        "description": "Equipment for outdoor sports and adventures",
+                        "children": {
+                            "Cycling": "Complete cycling equipment and accessories",
+                            "Running": "Professional running gear and accessories"
+                        }
+                    },
+                    "Sports Wear": {
+                        "description": "High-performance sports wear for athletes",
+                        "children": {
+                            "Men Sports Wear": "Professional sports wear for men",
+                            "Women Sports Wear": "High-quality sports wear for women"
+                        }
+                    },
+                    "Sports & Fitness": {
+                        "description": "Essential sports and fitness equipment",
+                        "children": {
+                            "Accessories": "Professional sports accessories",
+                            "Swimming": "Complete swimming equipment and gear",
+                            "Team Sports": "Equipment for various team sports",
+                            "Hunting & Fishing": "Professional hunting and fishing gear",
+                            "Leisure Sports & Game Room": "Equipment for leisure sports and games"
+                        }
+                    },
+                    "Accessories": {
+                        "description": "Essential sports and fitness accessories",
+                        "children": {
+                            "Exercise Bands": "Professional exercise bands and resistance tools",
+                            "Jump Ropes": "Quality jump ropes for cardio workouts",
+                            "Exercise Mats": "Comfortable and durable exercise mats",
+                            "Gym Bags": "Spacious and durable gym bags"
+                        }
+                    }
+                }
+            },
+            "Supermarket": {
+                "description": "Essential household and grocery items for your daily needs",
+                "children": {
+                    "Household Supplies": {
+                        "description": "Essential household supplies for daily living",
+                        "children": {
+                            "Food Storage, Foil & Cling Film": "Quality food storage solutions",
+                            "Disposable Plates & Cutlery": "Eco-friendly disposable dining items",
+                            "Disposable Cups": "Convenient disposable cups for any occasion",
+                            "Trash, Compost & Lawn Bags": "Durable bags for waste management",
+                            "Kitchen and Toilet Rolls": "Premium paper products for home",
+                            "Facial Tissues": "Soft and gentle facial tissues",
+                            "Household Batteries": "Reliable batteries for household devices",
+                            "Lighters & Matches": "Quality lighters and matches"
+                        }
+                    },
+                    "Household Cleaning": {
+                        "description": "Effective cleaning products for your home",
+                        "children": {
+                            "Dishwashing": "Quality dishwashing products",
+                            "Air Fresheners": "Fresh and pleasant air care products",
+                            "Kitchen Cleaners": "Effective kitchen cleaning solutions",
+                            "Bathroom Cleaners": "Professional bathroom cleaning products",
+                            "All Purpose & Floor Cleaners": "Versatile cleaning solutions",
+                            "Glass Cleaners": "Streak-free glass cleaning products",
+                            "Disinfectants": "Powerful disinfecting solutions",
+                            "Cleaning Tools": "Professional cleaning tools and equipment",
+                            "Wood Polish & Care": "Premium wood care products"
+                        }
+                    },
+                    "Beverages": {
+                        "description": "Refreshing beverages for every occasion",
+                        "children": {
+                            "Soft Drinks, Juices & Water": "Quality beverages and water",
+                            "Coffee, Tea & Cocoa": "Premium coffee, tea, and cocoa products"
+                        }
+                    },
+                    "Pet Supplies": {
+                        "description": "Essential supplies for your pets",
+                        "children": {
+                            "Dogs Supplies": "Complete care products for dogs",
+                            "Cats Supplies": "Essential supplies for cats"
+                        }
+                    },
+                    "Laundry": {
+                        "description": "Effective laundry care products",
+                        "children": {
+                            "Detergent": "Powerful laundry detergents",
+                            "Fabric Softener": "Gentle fabric softeners",
+                            "Stain Removal": "Effective stain removal products",
+                            "Lint Removal": "Quality lint removal tools"
+                        }
+                    }
+                }
+            },
+            "Televisions & Audio": {
+                "description": "Premium entertainment systems and audio equipment",
+                "children": {
+                    "Televisions & Receivers": {
+                        "description": "High-quality televisions and audio receivers",
+                        "children": {
+                            "Televisions": "Premium television sets",
+                            "LED & LCD TVs": "Advanced LED and LCD television technology",
+                            "Smart TVs": "Intelligent smart television systems",
+                            "Large Screens": "Immersive large screen displays",
+                            "32-inch TVs": "Compact 32-inch television options",
+                            "43-inch TVs": "Versatile 43-inch television displays",
+                            "50-inch TVs": "Premium 50-inch television experience",
+                            "55-inch TVs": "Immersive 55-inch television displays",
+                            "65-inch TVs": "Large 65-inch television options",
+                            "Receivers": "High-quality audio receivers",
+                            "Remote Controls": "Universal and specialized remote controls"
+                        }
                     },
                     "Audio": {
-                        "children": [
-                            "Headphones",
-                            "Earbuds",
-                            "Speakers",
-                            "Soundbars",
-                            "Home Theater",
-                            "Professional Audio"
-                        ]
+                        "description": "Professional audio equipment and accessories",
+                        "children": {
+                            "Radios": "Quality radio systems",
+                            "Audio Speakers": "Premium audio speaker systems",
+                            "Home Theater Systems": "Complete home theater solutions",
+                            "Headphones": "Professional headphones and earphones"
+                        }
                     },
-                    "Cameras": {
-                        "children": [
-                            "DSLR",
-                            "Mirrorless",
-                            "Compact",
-                            "Action Cameras",
-                            "Video Cameras",
-                            "Security Cameras"
-                        ]
+                    "Cameras & Accessories": {
+                        "description": "Professional photography equipment",
+                        "children": {
+                            "Digital Cameras": "Advanced digital camera systems",
+                            "Lenses": "Professional camera lenses",
+                            "Projectors": "High-quality video projectors"
+                        }
+                    }
+                }
+            },
+            "Home & Furniture": {
+                "description": "Premium home furnishings and furniture",
+                "children": {
+                    "Home Essentials": {
+                        "description": "Essential home items and decor",
+                        "children": {
+                            "Home Decor": "Beautiful home decoration items",
+                            "Lighting": "Premium lighting solutions",
+                            "Bedding": "Comfortable bedding and linens",
+                            "Bath": "Complete bathroom essentials",
+                            "Storage & Organization": "Smart storage solutions",
+                            "Cleaning Supplies": "Effective cleaning products",
+                            "Event & Party Supplies": "Party and event essentials",
+                            "Seasonal Decor": "Seasonal decoration items",
+                            "Light Blubs": "Energy-efficient light bulbs",
+                            "Power & Hand Tools": "Professional tools for home",
+                            "Air Purifiers": "Advanced air purification systems",
+                            "Tools & Improvements": "Home improvement tools"
+                        }
                     },
-                    "Tablets": {
-                        "children": [
-                            "Android Tablets",
-                            "iPads",
-                            "E-readers",
-                            "Graphics Tablets",
-                            "Kids Tablets",
-                            "Professional Tablets"
-                        ]
+                    "Furniture": {
+                        "description": "Quality furniture for every room",
+                        "children": {
+                            "Living room": "Comfortable living room furniture",
+                            "Bedroom Furniture": "Premium bedroom furnishings",
+                            "Dining room": "Elegant dining room furniture",
+                            "Bean Bags": "Comfortable bean bag chairs",
+                            "TV Units": "Stylish TV stands and units",
+                            "Storage Units": "Practical storage furniture"
+                        }
                     },
-                    "Gaming": {
-                        "children": [
-                            "Gaming Consoles",
-                            "Gaming Accessories",
-                            "VR Headsets",
-                            "Gaming Chairs",
-                            "Gaming Monitors",
-                            "Gaming Keyboards"
-                        ]
+                    "Kitchen & Dining": {
+                        "description": "Complete kitchen and dining solutions",
+                        "children": {
+                            "Cookware": "Professional cookware sets",
+                            "Bakeware": "Quality baking equipment",
+                            "Serveware": "Elegant serving dishes",
+                            "Glassware": "Premium glassware sets",
+                            "Kitchen Utensils": "Essential kitchen tools",
+                            "Kitchen Storage": "Smart kitchen storage solutions"
+                        }
+                    },
+                    "Garden & Outdoors": {
+                        "description": "Outdoor living and garden essentials",
+                        "children": {
+                            "Outdoor Decor": "Beautiful outdoor decoration",
+                            "Outdoor Furniture & Accessories": "Comfortable outdoor furniture",
+                            "Grills & Outdoor Cooking": "Professional outdoor cooking equipment",
+                            "Gardening & Lawn Care": "Complete gardening tools",
+                            "Pest Control Repellents": "Effective pest control solutions",
+                            "Artificial Plants": "Realistic artificial plants"
+                        }
+                    },
+                    "School & Office Supplies": {
+                        "description": "Essential supplies for work and study",
+                        "children": {
+                            "School & Office Furniture": "Comfortable office furniture",
+                            "Stationary & Supplies": "Quality office supplies"
+                        }
                     }
                 }
             },
             "Fashion": {
+                "description": "Trendy fashion for everyone",
                 "children": {
-                    "Men's Clothing": {
-                        "children": [
-                            "T-shirts",
-                            "Shirts",
-                            "Jeans",
-                            "Suits",
-                            "Hoodies",
-                            "Jackets",
-                            "Pants",
-                            "Shorts",
-                            "Sweaters",
-                            "Formal Wear"
-                        ]
+                    "Women's Fashion": {
+                        "description": "Stylish women's clothing and accessories",
+                        "children": {
+                            "Tops & T-Shirts": "Trendy tops and t-shirts",
+                            "Dresses": "Elegant dresses for every occasion",
+                            "Blouses": "Stylish blouses and shirts",
+                            "Bottoms": "Comfortable bottom wear",
+                            "Sneakers": "Fashionable sneakers",
+                            "Swimwear": "Stylish swimwear",
+                            "Homewear & Lingerie": "Comfortable homewear",
+                            "Sandals & Slippers": "Comfortable footwear",
+                            "Accessories": "Fashion accessories",
+                            "Kimonos": "Stylish kimonos",
+                            "Sports Shoes": "Athletic footwear"
+                        }
                     },
-                    "Women's Clothing": {
-                        "children": [
-                            "Dresses",
-                            "Tops",
-                            "Pants",
-                            "Skirts",
-                            "Blouses",
-                            "Coats",
-                            "Sweaters",
-                            "Activewear",
-                            "Swimwear",
-                            "Lingerie"
-                        ]
+                    "Men's Fashion": {
+                        "description": "Trendy men's clothing and accessories",
+                        "children": {
+                            "T-Shirts & Polos": "Casual t-shirts and polos",
+                            "Shirts": "Formal and casual shirts",
+                            "Pants": "Comfortable pants",
+                            "Sportswear": "Athletic clothing",
+                            "Shorts": "Casual shorts",
+                            "Footwear": "Stylish shoes",
+                            "Sports Shoes": "Athletic footwear",
+                            "Pajamas": "Comfortable sleepwear",
+                            "Watches": "Premium timepieces",
+                            "Underwear": "Comfortable underwear",
+                            "Accessories": "Fashion accessories"
+                        }
                     },
-                    "Shoes": {
-                        "children": [
-                            "Running Shoes",
-                            "Casual Shoes",
-                            "Formal Shoes",
-                            "Boots",
-                            "Sandals",
-                            "Sneakers",
-                            "Sports Shoes",
-                            "Heels",
-                            "Flats",
-                            "Slippers"
-                        ]
-                    },
-                    "Accessories": {
-                        "children": [
-                            "Bags",
-                            "Wallets",
-                            "Belts",
-                            "Watches",
-                            "Sunglasses",
-                            "Jewelry",
-                            "Hats",
-                            "Scarves",
-                            "Gloves",
-                            "Ties"
-                        ]
-                    },
-                    "Sportswear": {
-                        "children": [
-                            "Activewear",
-                            "Gym Clothing",
-                            "Sports Shoes",
-                            "Yoga Wear",
-                            "Swimwear",
-                            "Team Sports",
-                            "Outdoor Gear",
-                            "Fitness Accessories"
-                        ]
+                    "Kid's Fashion": {
+                        "description": "Cute and comfortable kids' clothing",
+                        "children": {
+                            "Boy's Fashion": "Stylish boys' clothing",
+                            "Girl's Fashion": "Trendy girls' clothing",
+                            "Baby Boy's Fashion": "Cute baby boy clothes",
+                            "Baby Girl's Fashion": "Adorable baby girl clothes"
+                        }
                     }
                 }
             },
-            "Home & Kitchen": {
+            "Computing": {
+                "description": "Professional computing equipment and accessories",
                 "children": {
-                    "Furniture": {
-                        "children": [
-                            "Sofas",
-                            "Beds",
-                            "Tables",
-                            "Chairs",
-                            "Wardrobes",
-                            "TV Units",
-                            "Bookshelves",
-                            "Office Furniture",
-                            "Outdoor Furniture",
-                            "Kids Furniture"
-                        ]
+                    "Desktop & Laptops": {
+                        "description": "High-performance computers",
+                        "children": {
+                            "2 in 1 Laptops": "Versatile 2-in-1 laptops",
+                            "Gaming Laptops": "Powerful gaming laptops",
+                            "Desktops": "High-performance desktops",
+                            "Monitors": "Quality computer monitors"
+                        }
                     },
-                    "Kitchen Appliances": {
-                        "children": [
-                            "Refrigerators",
-                            "Microwaves",
-                            "Coffee Makers",
-                            "Blenders",
-                            "Ovens",
-                            "Dishwashers",
-                            "Mixers",
-                            "Toasters",
-                            "Food Processors",
-                            "Air Fryers"
-                        ]
+                    "Data Storage": {
+                        "description": "Reliable data storage solutions",
+                        "children": {
+                            "USB Flash Drives": "Portable USB drives",
+                            "External Hard Drives": "External storage solutions",
+                            "Memory Cards": "Digital memory cards"
+                        }
                     },
-                    "Kitchenware": {
-                        "children": [
-                            "Cookware",
-                            "Cutlery",
-                            "Storage Containers",
-                            "Bakeware",
-                            "Kitchen Tools",
-                            "Dinnerware",
-                            "Drinkware",
-                            "Kitchen Gadgets",
-                            "Kitchen Storage",
-                            "Kitchen Linens"
-                        ]
+                    "Computer Components": {
+                        "description": "Essential computer parts",
+                        "children": {
+                            "Internal Hard Drives": "Internal storage solutions",
+                            "Graphics Cards": "High-performance GPUs",
+                            "Fans & Cooling": "Computer cooling systems",
+                            "Audio & Video Accessories": "Multimedia accessories",
+                            "Computer Memory": "RAM and memory modules"
+                        }
                     },
-                    "Home Decor": {
-                        "children": [
-                            "Wall Art",
-                            "Rugs",
-                            "Cushions",
-                            "Lamps",
-                            "Curtains",
-                            "Vases",
-                            "Mirrors",
-                            "Clocks",
-                            "Photo Frames",
-                            "Decorative Items"
-                        ]
+                    "Computers & Accessories": {
+                        "description": "Essential computer accessories",
+                        "children": {
+                            "Laptop Accessories": "Laptop add-ons",
+                            "Laptop Bags & Sleeves": "Protective laptop cases",
+                            "Keyboard": "Quality keyboards",
+                            "Mouse": "Precision mice",
+                            "Cleaning & Repair": "Computer maintenance tools",
+                            "Cables & Interconnects": "Essential cables",
+                            "Scanners": "Document scanners",
+                            "Printer Ink & Toner": "Printing supplies"
+                        }
                     },
-                    "Bedding": {
-                        "children": [
-                            "Bed Sheets",
-                            "Pillows",
-                            "Blankets",
-                            "Comforters",
-                            "Mattresses",
-                            "Duvets",
-                            "Bed Skirts",
-                            "Pillowcases",
-                            "Quilts",
-                            "Bed Covers"
-                        ]
+                    "Networking Products": {
+                        "description": "Professional networking equipment",
+                        "children": {
+                            "Network Adapters": "Network connectivity solutions",
+                            "Routers": "High-speed routers",
+                            "Wireless Access Points": "Wi-Fi access points",
+                            "Network Switches": "Network management switches",
+                            "Network Hubs": "Network connection hubs"
+                        }
                     }
                 }
             },
-            "Beauty & Personal Care": {
+            "Baby Products": {
+                "description": "Essential products for your baby",
                 "children": {
-                    "Skincare": {
-                        "children": [
-                            "Moisturizers",
-                            "Cleansers",
-                            "Serums",
-                            "Sunscreen",
-                            "Face Masks",
-                            "Eye Care",
-                            "Acne Treatment",
-                            "Anti-aging",
-                            "Body Care",
-                            "Hand & Foot Care"
-                        ]
+                    "Diapering": {
+                        "description": "Complete diapering solutions",
+                        "children": {
+                            "Disposable Diapers": "Quality disposable diapers",
+                            "Wipes & Holders": "Baby wipes and dispensers",
+                            "Diaper Bags": "Spacious diaper bags"
+                        }
                     },
-                    "Makeup": {
-                        "children": [
-                            "Foundation",
-                            "Lipstick",
-                            "Eyeshadow",
-                            "Mascara",
-                            "Concealer",
-                            "Blush",
-                            "Bronzer",
-                            "Eyeliner",
-                            "Makeup Brushes",
-                            "Makeup Sets"
-                        ]
+                    "Baby Feeding": {
+                        "description": "Essential feeding supplies",
+                        "children": {
+                            "Bottle-Feeding & Tablewear": "Baby bottles and dishes",
+                            "Breast feeding": "Breastfeeding essentials",
+                            "Baby Food": "Nutritious baby food",
+                            "Bibs & Burp Cloths": "Feeding accessories"
+                        }
                     },
-                    "Haircare": {
-                        "children": [
-                            "Shampoo",
-                            "Conditioner",
-                            "Hair Oil",
-                            "Hair Styling",
-                            "Hair Treatment",
-                            "Hair Color",
-                            "Hair Tools",
-                            "Hair Accessories",
-                            "Hair Masks",
-                            "Hair Serums"
-                        ]
+                    "Bathing & Skin Care": {
+                        "description": "Gentle baby care products",
+                        "children": {
+                            "Lotions": "Moisturizing baby lotions",
+                            "Shampoo & Conditioner": "Gentle hair care",
+                            "Bath Essentials": "Complete bath sets",
+                            "Grooming & Healthcare Kits": "Baby care kits",
+                            "Potty Training": "Potty training supplies",
+                            "Health & Baby Care": "Essential health products"
+                        }
                     },
-                    "Fragrances": {
-                        "children": [
-                            "Perfumes",
-                            "Deodorants",
-                            "Body Mists",
-                            "Cologne",
-                            "Fragrance Sets",
-                            "Room Fragrances",
-                            "Car Fragrances",
-                            "Essential Oils",
-                            "Scented Candles",
-                            "Aromatherapy"
-                        ]
+                    "Nursery": {
+                        "description": "Complete nursery solutions",
+                        "children": {
+                            "Beds, Cribs & Bedding": "Comfortable sleeping solutions",
+                            "Nursery Decor": "Beautiful nursery decorations"
+                        }
                     },
-                    "Personal Care": {
-                        "children": [
-                            "Body Wash",
-                            "Body Lotion",
-                            "Hand Care",
-                            "Oral Care",
-                            "Shaving",
-                            "Bath & Shower",
-                            "Feminine Care",
-                            "Men's Grooming",
-                            "Foot Care",
-                            "Travel Size"
-                        ]
+                    "Baby Safety": {
+                        "description": "Essential safety products",
+                        "children": {
+                            "Kitchen Safety": "Kitchen safety items",
+                            "Outdoor Safety": "Outdoor safety products",
+                            "Gear Safety": "Safety equipment"
+                        }
+                    },
+                    "Gear": {
+                        "description": "Essential baby gear",
+                        "children": {
+                            "Swings, Jumpers & Bouncers": "Baby entertainment items",
+                            "Backpacks & Carriers": "Baby carrying solutions",
+                            "Walkers": "Baby walking aids"
+                        }
+                    },
+                    "Strollers & Accessories": {
+                        "description": "Complete stroller solutions",
+                        "children": {
+                            "Accessories": "Stroller add-ons",
+                            "Strollers": "Quality strollers",
+                            "Car Seats": "Safe car seats"
+                        }
+                    },
+                    "Toys & Games": {
+                        "description": "Educational and fun toys",
+                        "children": {
+                            "Baby & Toddler Toys": "Age-appropriate toys",
+                            "Dolls & Accessories": "Dolls and accessories",
+                            "Learning & Education": "Educational toys",
+                            "Action Figures & Statues": "Action figures",
+                            "Arts & Crafts": "Creative toys",
+                            "Dress Up & Pretend Play": "Role-play toys",
+                            "Puzzles": "Educational puzzles",
+                            "Toy Remote Control & Play Vehicles": "Remote control toys"
+                        }
+                    }
+                }
+            },
+            "Phones & Tablets": {
+                "description": "Latest mobile devices and accessories",
+                "children": {
+                    "Mobile Phones": {
+                        "description": "Premium smartphones",
+                        "children": {
+                            "Android Phones": "Latest Android smartphones",
+                            "IOS Phones": "Apple iPhone series",
+                            "Cell Phones": "Basic cell phones"
+                        }
+                    },
+                    "Tablets": {
+                        "description": "High-performance tablets",
+                        "children": {
+                            "Tablets": "General tablets",
+                            "Ipads": "Apple iPad series",
+                            "Educational Tablets": "Learning tablets",
+                            "Tablet Accessories": "Tablet add-ons"
+                        }
+                    },
+                    "Telephones": {
+                        "description": "Traditional telephones",
+                        "children": {
+                            "Landline Phones": "Home and office phones"
+                        }
+                    },
+                    "Mobile Phones Accessories": {
+                        "description": "Essential phone accessories",
+                        "children": {
+                            "Smart Watches": "Smart wearable devices",
+                            "Bluetooth Headsets": "Wireless audio",
+                            "Portable Power Banks": "Mobile charging solutions",
+                            "Phone Cases": "Protective cases",
+                            "Screen Protectors": "Screen protection",
+                            "Cables": "Charging cables",
+                            "Chargers": "Power adapters",
+                            "Car Accessories": "Car phone accessories",
+                            "Memory Cards": "Storage solutions",
+                            "Mounts & Stands": "Phone holders",
+                            "Selfie Sticks & Tripods": "Photo accessories",
+                            "Batteries": "Replacement batteries",
+                            "Adapters": "Connection adapters",
+                            "Speakers": "Portable speakers"
+                        }
+                    }
+                }
+            },
+            "Appliances": {
+                "description": "Essential home appliances",
+                "children": {
+                    "Small Appliances": {
+                        "description": "Compact home appliances",
+                        "children": {
+                            "Kettles": "Electric kettles",
+                            "Blenders": "Food blenders",
+                            "Irons & Steamers": "Clothing care",
+                            "Air Fryers": "Healthy cooking",
+                            "Microwaves": "Quick cooking",
+                            "Coffee Machine": "Coffee makers",
+                            "Mixers": "Food mixers",
+                            "Food Processors": "Food preparation",
+                            "Hand Blenders": "Portable blending",
+                            "Waffle & Sandwich Makers": "Breakfast appliances",
+                            "Ovens & Toasters": "Baking equipment",
+                            "Vacuums & Floor Care": "Cleaning appliances",
+                            "Juicers": "Juice extractors",
+                            "Grills": "Indoor grilling",
+                            "Rice Cookers": "Rice preparation"
+                        }
+                    },
+                    "Large Appliances": {
+                        "description": "Major home appliances",
+                        "children": {
+                            "Refrigerators": "Food storage",
+                            "Freezers": "Frozen storage",
+                            "Dishwashers": "Dish cleaning",
+                            "Washers & Driers": "Laundry care",
+                            "Cookers": "Cooking appliances",
+                            "Cooktop": "Stovetop cooking",
+                            "Range Hoods": "Kitchen ventilation"
+                        }
+                    },
+                    "Cooling & Heating Appliances": {
+                        "description": "Climate control appliances",
+                        "children": {
+                            "Air conditioners": "Room cooling",
+                            "Household Fans": "Air circulation",
+                            "Water Dispensers": "Water cooling",
+                            "Water Heaters": "Water heating",
+                            "Water Coolers & Filters": "Water purification"
+                        }
+                    }
+                }
+            },
+            "Gaming": {
+                "description": "Premium gaming equipment and accessories",
+                "children": {
+                    "Playstation 5": {
+                        "description": "Latest PlayStation gaming",
+                        "children": {
+                            "Consoles": "PS5 gaming consoles",
+                            "Games": "PS5 game titles",
+                            "Controllers": "Gaming controllers",
+                            "Cards": "Gift cards",
+                            "Accessories": "PS5 add-ons"
+                        }
+                    },
+                    "Playstation 4": {
+                        "description": "PS4 gaming experience",
+                        "children": {
+                            "Games": "PS4 game titles",
+                            "Controllers": "PS4 controllers",
+                            "Cards": "Gift cards",
+                            "Accessories": "PS4 add-ons"
+                        }
+                    },
+                    "Xbox": {
+                        "description": "Xbox gaming solutions",
+                        "children": {
+                            "Controllers": "Xbox controllers",
+                            "Accessories": "Xbox add-ons"
+                        }
+                    },
+                    "PC Gaming": {
+                        "description": "Professional PC gaming",
+                        "children": {
+                            "Gaming Laptops": "High-performance laptops",
+                            "Headsets": "Gaming audio",
+                            "Keyboard": "Gaming keyboards",
+                            "Mouse": "Gaming mice",
+                            "Gaming Chairs": "Comfortable seating",
+                            "Monitors": "Gaming displays"
+                        }
+                    },
+                    "Card & Board Games": {
+                        "description": "Classic gaming entertainment",
+                        "children": {
+                            "Card Games": "Traditional card games",
+                            "Board Games": "Family board games"
+                        }
                     }
                 }
             }
         }
-        
-        for main_name, main_data in categories_structure.items():
-            # Create main category with unique slug
-            main_slug = slugify(main_name)
+
+        # Create categories with proper hierarchy
+        for main_cat_name, main_cat_data in categories_data.items():
+            # Create main category
+            main_slug = slugify(main_cat_name)
             main_cat, created = Category.objects.get_or_create(
-                name=main_name,
-                defaults={"slug": main_slug, "is_active": True}
+                name=main_cat_name,
+                defaults={
+                    "slug": main_slug,
+                    "is_active": True,
+                    "description": main_cat_data["description"],
+                    "image": "default.jpg"
+                }
             )
-            print(f"{'Created' if created else 'Found'} main category: {main_cat.name}")
+            self.stdout.write(f"{'Created' if created else 'Found'} main category: {main_cat.name}")
             
             # Create subcategories
-            for sub_name, sub_data in main_data["children"].items():
-                # Create unique slug for subcategory
-                sub_slug = f"{main_slug}-{slugify(sub_name)}"
+            for sub_cat_name, sub_cat_data in main_cat_data["children"].items():
+                sub_slug = f"{main_slug}-{slugify(sub_cat_name)}"
                 sub_cat, created = Category.objects.get_or_create(
-                    name=sub_name,
+                    name=sub_cat_name,
                     parent=main_cat,
-                    defaults={"slug": sub_slug, "is_active": True}
+                    defaults={
+                        "slug": sub_slug,
+                        "is_active": True,
+                        "description": sub_cat_data["description"],
+                        "image": "default.jpg"
+                    }
                 )
-                print(f"  {'Created' if created else 'Found'} subcategory: {sub_cat.name}")
-                
-                # Create third-level categories
-                for child_name in sub_data["children"]:
-                    # Create unique slug for child category
-                    child_slug = f"{sub_slug}-{slugify(child_name)}"
+                self.stdout.write(f"  {'Created' if created else 'Found'} subcategory: {sub_cat.name}")
+
+                # Create child categories
+                for child_cat_name, child_cat_desc in sub_cat_data["children"].items():
+                    child_slug = f"{sub_slug}-{slugify(child_cat_name)}"
                     child_cat, created = Category.objects.get_or_create(
-                        name=child_name,
+                        name=child_cat_name,
                         parent=sub_cat,
-                        defaults={"slug": child_slug, "is_active": True}
+                        defaults={
+                            "slug": child_slug,
+                            "is_active": True,
+                            "description": child_cat_desc,
+                            "image": "default.jpg"
+                        }
                     )
-                    print(f"    {'Created' if created else 'Found'} child category: {child_cat.name}")
+                    self.stdout.write(f"    {'Created' if created else 'Found'} child category: {child_cat.name}")
     
     def create_brands(self):
-        """Create diverse brands across different categories"""
-        brands_by_category = {
-            "Electronics": ["Apple", "Samsung", "Sony", "LG", "Xiaomi", "OnePlus", "Dell", "HP", "Lenovo", "Asus"],
-            "Fashion": ["Nike", "Adidas", "Zara", "H&M", "Uniqlo", "Gap", "Levi's", "Calvin Klein", "Tommy Hilfiger", "Gucci"],
-            "Home": ["IKEA", "Philips", "Bosch", "Whirlpool", "Dyson", "Cuisinart", "KitchenAid", "Tupperware"],
-            "Beauty": ["L'Oreal", "Maybelline", "MAC", "Estee Lauder", "Clinique", "Neutrogena", "Nivea", "Dove"],
-            "Sports": ["Nike", "Adidas", "Puma", "Reebok", "Under Armour", "New Balance", "Fila", "Asics"],
+        """Create brands with proper attributes"""
+        brands_data = {
+            "Electronics": [
+                {"name": "Samsung Electronics", "image": "brand_images/samsung.jpg"},
+                {"name": "Apple", "image": "brand_images/apple.jpg"},
+                {"name": "Sony", "image": "brand_images/sony.jpg"},
+                {"name": "LG Electronics", "image": "brand_images/lg.jpg"},
+                {"name": "Xiaomi", "image": "brand_images/xiaomi.jpg"},
+                {"name": "Huawei", "image": "brand_images/huawei.jpg"},
+                {"name": "OnePlus", "image": "brand_images/oneplus.jpg"},
+                {"name": "Google", "image": "brand_images/google.jpg"},
+                {"name": "Microsoft", "image": "brand_images/microsoft.jpg"},
+                {"name": "Asus", "image": "brand_images/asus.jpg"}
+            ],
+            "Fashion": [
+                {"name": "Nike", "image": "brand_images/nike.jpg"},
+                {"name": "Adidas", "image": "brand_images/adidas.jpg"},
+                {"name": "Zara", "image": "brand_images/zara.jpg"},
+                {"name": "H&M", "image": "brand_images/hm.jpg"},
+                {"name": "Gucci", "image": "brand_images/gucci.jpg"},
+                {"name": "Puma", "image": "brand_images/puma.jpg"},
+                {"name": "Under Armour", "image": "brand_images/underarmour.jpg"},
+                {"name": "Levi's", "image": "brand_images/levis.jpg"},
+                {"name": "Calvin Klein", "image": "brand_images/calvinklein.jpg"},
+                {"name": "Ralph Lauren", "image": "brand_images/ralphlauren.jpg"}
+            ],
+            "Home & Kitchen": [
+                {"name": "IKEA", "image": "brand_images/ikea.jpg"},
+                {"name": "Bosch", "image": "brand_images/bosch.jpg"},
+                {"name": "Philips", "image": "brand_images/philips.jpg"},
+                {"name": "Dyson", "image": "brand_images/dyson.jpg"},
+                {"name": "KitchenAid", "image": "brand_images/kitchenaid.jpg"},
+                {"name": "Whirlpool", "image": "brand_images/whirlpool.jpg"},
+                {"name": "Samsung Home", "image": "brand_images/samsung.jpg"},
+                {"name": "LG Home", "image": "brand_images/lg.jpg"},
+                {"name": "Panasonic", "image": "brand_images/panasonic.jpg"},
+                {"name": "Sharp", "image": "brand_images/sharp.jpg"}
+            ],
+            "Beauty & Personal Care": [
+                {"name": "L'Oreal", "image": "brand_images/loreal.jpg"},
+                {"name": "Maybelline", "image": "brand_images/maybelline.jpg"},
+                {"name": "MAC", "image": "brand_images/mac.jpg"},
+                {"name": "Nivea", "image": "brand_images/nivea.jpg"},
+                {"name": "Dove", "image": "brand_images/dove.jpg"},
+                {"name": "Garnier", "image": "brand_images/garnier.jpg"},
+                {"name": "Neutrogena", "image": "brand_images/neutrogena.jpg"},
+                {"name": "Revlon", "image": "brand_images/revlon.jpg"},
+                {"name": "Clinique", "image": "brand_images/clinique.jpg"},
+                {"name": "Estee Lauder", "image": "brand_images/esteelauder.jpg"}
+            ],
+            "Sports & Outdoors": [
+                {"name": "Nike Sports", "image": "brand_images/nike.jpg"},
+                {"name": "Adidas Sports", "image": "brand_images/adidas.jpg"},
+                {"name": "Under Armour Sports", "image": "brand_images/underarmour.jpg"},
+                {"name": "Puma Sports", "image": "brand_images/puma.jpg"},
+                {"name": "Reebok", "image": "brand_images/reebok.jpg"},
+                {"name": "New Balance", "image": "brand_images/newbalance.jpg"},
+                {"name": "The North Face", "image": "brand_images/thenorthface.jpg"},
+                {"name": "Columbia", "image": "brand_images/columbia.jpg"},
+                {"name": "Asics", "image": "brand_images/asics.jpg"},
+                {"name": "Mizuno", "image": "brand_images/mizuno.jpg"}
+            ],
+            "Gaming": [
+                {"name": "Sony Gaming", "image": "brand_images/sony.jpg"},
+                {"name": "Microsoft Gaming", "image": "brand_images/microsoft.jpg"},
+                {"name": "Nintendo", "image": "brand_images/nintendo.jpg"},
+                {"name": "Razer", "image": "brand_images/razer.jpg"},
+                {"name": "Logitech", "image": "brand_images/logitech.jpg"},
+                {"name": "SteelSeries", "image": "brand_images/steelseries.jpg"},
+                {"name": "Corsair", "image": "brand_images/corsair.jpg"},
+                {"name": "ASUS ROG", "image": "brand_images/asusrog.jpg"},
+                {"name": "Alienware", "image": "brand_images/alienware.jpg"},
+                {"name": "HyperX", "image": "brand_images/hyperx.jpg"}
+            ],
+            "Baby Products": [
+                {"name": "Pampers", "image": "brand_images/pampers.jpg"},
+                {"name": "Huggies", "image": "brand_images/huggies.jpg"},
+                {"name": "Johnson & Johnson", "image": "brand_images/johnson.jpg"},
+                {"name": "Gerber", "image": "brand_images/gerber.jpg"},
+                {"name": "Fisher-Price", "image": "brand_images/fisherprice.jpg"},
+                {"name": "Philips Avent", "image": "brand_images/philipsavent.jpg"},
+                {"name": "MAM", "image": "brand_images/mam.jpg"},
+                {"name": "NUK", "image": "brand_images/nuk.jpg"},
+                {"name": "Chicco", "image": "brand_images/chicco.jpg"},
+                {"name": "Graco", "image": "brand_images/graco.jpg"}
+            ],
+            "Computing": [
+                {"name": "Dell", "image": "brand_images/dell.jpg"},
+                {"name": "HP", "image": "brand_images/hp.jpg"},
+                {"name": "Lenovo", "image": "brand_images/lenovo.jpg"},
+                {"name": "ASUS Computing", "image": "brand_images/asus.jpg"},
+                {"name": "Acer", "image": "brand_images/acer.jpg"},
+                {"name": "MSI", "image": "brand_images/msi.jpg"},
+                {"name": "Intel", "image": "brand_images/intel.jpg"},
+                {"name": "AMD", "image": "brand_images/amd.jpg"},
+                {"name": "Western Digital", "image": "brand_images/wd.jpg"},
+                {"name": "Seagate", "image": "brand_images/seagate.jpg"}
+            ],
+            "Phones & Tablets": [
+                {"name": "Apple Mobile", "image": "brand_images/apple.jpg"},
+                {"name": "Samsung Mobile", "image": "brand_images/samsung.jpg"},
+                {"name": "Xiaomi Mobile", "image": "brand_images/xiaomi.jpg"},
+                {"name": "Huawei Mobile", "image": "brand_images/huawei.jpg"},
+                {"name": "OnePlus Mobile", "image": "brand_images/oneplus.jpg"},
+                {"name": "Google Mobile", "image": "brand_images/google.jpg"},
+                {"name": "OPPO", "image": "brand_images/oppo.jpg"},
+                {"name": "Vivo", "image": "brand_images/vivo.jpg"},
+                {"name": "Realme", "image": "brand_images/realme.jpg"},
+                {"name": "Nothing", "image": "brand_images/nothing.jpg"}
+            ],
+            "Appliances": [
+                {"name": "Samsung Appliances", "image": "brand_images/samsung.jpg"},
+                {"name": "LG Appliances", "image": "brand_images/lg.jpg"},
+                {"name": "Bosch Appliances", "image": "brand_images/bosch.jpg"},
+                {"name": "Whirlpool", "image": "brand_images/whirlpool.jpg"},
+                {"name": "Electrolux", "image": "brand_images/electrolux.jpg"},
+                {"name": "Miele", "image": "brand_images/miele.jpg"},
+                {"name": "Panasonic Appliances", "image": "brand_images/panasonic.jpg"},
+                {"name": "Sharp Appliances", "image": "brand_images/sharp.jpg"},
+                {"name": "Philips Appliances", "image": "brand_images/philips.jpg"},
+                {"name": "Dyson Appliances", "image": "brand_images/dyson.jpg"}
+            ]
         }
-        
-        for category_group, brand_names in brands_by_category.items():
-            for brand_name in brand_names:
-                brand, created = Brand.objects.get_or_create(
-                    name=brand_name,
-                    defaults={"slug": slugify(brand_name)}
-                )
-                print(f"{'Created' if created else 'Found'} brand: {brand.name}")
+
+        # Create brands
+        for category, brands in brands_data.items():
+            for brand_data in brands:
+                try:
+                    # Try to get existing brand
+                    brand = Brand.objects.get(name=brand_data["name"])
+                    self.stdout.write(f"Found existing brand: {brand.name}")
+                except Brand.DoesNotExist:
+                    # Create new brand if it doesn't exist
+                    brand = Brand(
+                        name=brand_data["name"],
+                        image="default.jpg"
+                    )
+                    brand.save()  # This will trigger the save() method and generate the slug
+                    self.stdout.write(f"Created new brand: {brand.name}")
     
     def create_products(self):
-        """Create diverse products with realistic data"""
-        # Get all third-level categories
-        leaf_categories = Category.objects.filter(children__isnull=True, parent__parent__isnull=False)
-        brands = list(Brand.objects.all())
-        colors = list(Color.objects.all())
-        sizes = list(Size.objects.all())
+        """Create products with realistic data for each leaf category (10 products per category)"""
+        # Get all leaf categories (categories with no children)
+        leaf_categories = []
+        for category in Category.objects.all():
+            if not category.children.exists():
+                leaf_categories.append(category)
         
-        # Define product templates with more comprehensive data
-        product_templates = {
-            # Electronics - Smartphones (15 products each)
-            "Android Phones": {
-                "brand_names": ["Samsung", "Xiaomi", "OnePlus", "Google", "Motorola"],
-                "products": [
-                    {
-                        "name": "Galaxy S23 Ultra",
-                        "price": 45000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.8,
-                        "specifications": {
-                            "display": "6.8-inch Dynamic AMOLED 2X",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "200MP + 12MP + 10MP + 10MP",
-                            "battery": "5000mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.233,
-                        "dimensions": {"length": 163.4, "width": 78.1, "height": 8.9}
-                    },
-                    {
-                        "name": "Galaxy S23+",
-                        "price": 35000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.7,
-                        "specifications": {
-                            "display": "6.6-inch Dynamic AMOLED 2X",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "8GB",
-                            "storage": "256GB",
-                            "camera": "108MP + 12MP + 10MP",
-                            "battery": "4800mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.198,
-                        "dimensions": {"length": 157.2, "width": 73.8, "height": 8.2}
-                    },
-                    {
-                        "name": "Galaxy S23",
-                        "price": 28000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.6,
-                        "specifications": {
-                            "display": "6.1-inch Dynamic AMOLED 2X",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "8GB",
-                            "storage": "128GB",
-                            "camera": "12MP + 10MP + 10MP",
-                            "battery": "3900mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.172,
-                        "dimensions": {"length": 146.9, "width": 70.9, "height": 7.6}
-                    },
-                    {
-                        "name": "Galaxy Z Fold 5",
-                        "price": 65000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.5,
-                        "specifications": {
-                            "display": "7.6-inch Dynamic AMOLED 2X",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP + 10MP",
-                            "battery": "4400mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.272,
-                        "dimensions": {"length": 128.2, "width": 159.2, "height": 6.1}
-                    },
-                    {
-                        "name": "Galaxy Z Flip 5",
-                        "price": 35000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.4,
-                        "specifications": {
-                            "display": "6.7-inch Dynamic AMOLED 2X",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "8GB",
-                            "storage": "256GB",
-                            "camera": "12MP + 12MP",
-                            "battery": "3700mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.187,
-                        "dimensions": {"length": 165.2, "width": 72.2, "height": 7.2}
-                    },
-                    {
-                        "name": "Mi 13 Pro",
-                        "price": 32000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.2,
-                        "specifications": {
-                            "display": "6.3-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "200MP + 12MP + 10MP",
-                            "battery": "4800mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.192,
-                        "dimensions": {"length": 152.7, "width": 72.8, "height": 8.1}
-                    },
-                    {
-                        "name": "Mi 13",
-                        "price": 25000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.1,
-                        "specifications": {
-                            "display": "6.3-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "8GB",
-                            "storage": "128GB",
-                            "camera": "108MP + 12MP",
-                            "battery": "4500mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.172,
-                        "dimensions": {"length": 152.7, "width": 72.8, "height": 7.6}
-                    },
-                    {
-                        "name": "Mi 13T Pro",
-                        "price": 28000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.0,
-                        "specifications": {
-                            "display": "6.3-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "200MP + 12MP + 10MP",
-                            "battery": "4800mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.192,
-                        "dimensions": {"length": 152.7, "width": 72.8, "height": 8.1}
-                    },
-                    {
-                        "name": "OnePlus 11",
-                        "price": 26000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.3,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "16GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP",
-                            "battery": "5000mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.206,
-                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
-                    },
-                    {
-                        "name": "OnePlus 11R",
-                        "price": 22000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.2,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "16GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP",
-                            "battery": "4800mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.198,
-                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
-                    },
-                    {
-                        "name": "Pixel 7 Pro",
-                        "price": 33000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.4,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Google Tensor G2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP",
-                            "battery": "5000mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.218,
-                        "dimensions": {"length": 158.6, "width": 76.2, "height": 8.9}
-                    },
-                    {
-                        "name": "Pixel 7",
-                        "price": 22000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 4.3,
-                        "specifications": {
-                            "display": "6.3-inch AMOLED",
-                            "processor": "Google Tensor G2",
-                            "ram": "8GB",
-                            "storage": "128GB",
-                            "camera": "50MP + 12MP",
-                            "battery": "4300mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.176,
-                        "dimensions": {"length": 155.6, "width": 72.6, "height": 7.6}
-                    },
-                    {
-                        "name": "Edge 30 Ultra",
-                        "price": 29000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 3.9,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP",
-                            "battery": "5000mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.218,
-                        "dimensions": {"length": 163.1, "width": 74.1, "height": 8.5}
-                    },
-                    {
-                        "name": "Edge 30 Pro",
-                        "price": 25000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 3.8,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "12GB",
-                            "storage": "256GB",
-                            "camera": "50MP + 12MP + 10MP",
-                            "battery": "4800mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.206,
-                        "dimensions": {"length": 158.6, "width": 76.2, "height": 8.9}
-                    },
-                    {
-                        "name": "Edge 30",
-                        "price": 18000,
-                        "has_sizes": False,
-                        "has_colors": True,
-                        "rating": 3.7,
-                        "specifications": {
-                            "display": "6.7-inch AMOLED",
-                            "processor": "Snapdragon 8 Gen 2",
-                            "ram": "8GB",
-                            "storage": "128GB",
-                            "camera": "50MP + 12MP",
-                            "battery": "4500mAh",
-                            "os": "Android 13",
-                            "warranty": "2 years"
-                        },
-                        "weight": 0.172,
-                        "dimensions": {"length": 155.6, "width": 72.6, "height": 7.6}
-                    },
-                ]
-            },
-            "iPhones": {
-                "brand_names": ["Apple"],
-                "products": [
-                    {"name": "iPhone 15 Pro Max", "price": 65000, "has_sizes": False, "has_colors": True, "rating": 4.9},
-                    {"name": "iPhone 15 Pro", "price": 55000, "has_sizes": False, "has_colors": True, "rating": 4.8},
-                    {"name": "iPhone 15 Plus", "price": 48000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPhone 15", "price": 42000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPhone 14 Pro Max", "price": 58000, "has_sizes": False, "has_colors": True, "rating": 4.8},
-                    {"name": "iPhone 14 Pro", "price": 48000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPhone 14 Plus", "price": 42000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPhone 14", "price": 36000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                    {"name": "iPhone 13 Pro Max", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPhone 13 Pro", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPhone 13", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                    {"name": "iPhone SE (3rd gen)", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.2},
-                    {"name": "iPhone 12 Pro Max", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.4},
-                    {"name": "iPhone 12 Pro", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.3},
-                    {"name": "iPhone 12", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.2},
-                ]
-            },
-            # Tablets (15 products each)
-            "Android Tablets": {
-                "brand_names": ["Samsung", "Lenovo", "Xiaomi", "Huawei"],
-                "products": [
-                    {"name": "Galaxy Tab S9 Ultra", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.8},
-                    {"name": "Galaxy Tab S9+", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "Galaxy Tab S9", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "Galaxy Tab S8 Ultra", "price": 38000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "Galaxy Tab S8+", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "Lenovo Tab P12 Pro", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.3},
-                    {"name": "Lenovo Tab P11 Pro", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.2},
-                    {"name": "Lenovo Tab P11", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.1},
-                    {"name": "Xiaomi Pad 6 Pro", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.4},
-                    {"name": "Xiaomi Pad 6", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.3},
-                    {"name": "Huawei MatePad Pro", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.2},
-                    {"name": "Huawei MatePad", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.1},
-                    {"name": "Galaxy Tab A9+", "price": 15000, "has_sizes": False, "has_colors": True, "rating": 4.0},
-                    {"name": "Lenovo Tab M10 Plus", "price": 12000, "has_sizes": False, "has_colors": True, "rating": 3.9},
-                    {"name": "Xiaomi Pad 5", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.1},
-                ]
-            },
-            "iPads": {
-                "brand_names": ["Apple"],
-                "products": [
-                    {"name": "iPad Pro 12.9-inch", "price": 45000, "has_sizes": False, "has_colors": True, "rating": 4.9},
-                    {"name": "iPad Pro 11-inch", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.8},
-                    {"name": "iPad Air", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPad", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPad mini", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPad Pro 12.9-inch (5th gen)", "price": 40000, "has_sizes": False, "has_colors": True, "rating": 4.8},
-                    {"name": "iPad Pro 11-inch (3rd gen)", "price": 32000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPad Air (4th gen)", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPad (9th gen)", "price": 15000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                    {"name": "iPad mini (6th gen)", "price": 20000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPad Pro 12.9-inch (4th gen)", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.7},
-                    {"name": "iPad Pro 11-inch (2nd gen)", "price": 28000, "has_sizes": False, "has_colors": True, "rating": 4.6},
-                    {"name": "iPad Air (3rd gen)", "price": 22000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                    {"name": "iPad (8th gen)", "price": 14000, "has_sizes": False, "has_colors": True, "rating": 4.4},
-                    {"name": "iPad mini (5th gen)", "price": 18000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                ]
-            },
-            # Other categories (3 products each)
-            "Gaming Laptops": {
-                "brand_names": ["Dell", "HP", "Asus", "MSI", "Lenovo"],
-                "products": [
-                    {"name": "Alienware m16", "price": 85000, "has_sizes": False, "has_colors": False, "rating": 4.8},
-                    {"name": "ROG Strix G16", "price": 65000, "has_sizes": False, "has_colors": False, "rating": 4.7},
-                    {"name": "Legion Pro 7", "price": 70000, "has_sizes": False, "has_colors": False, "rating": 4.6},
-                ]
-            },
-            "T-shirts": {
-                "brand_names": ["Nike", "Adidas", "Gap", "H&M", "Uniqlo"],
-                "products": [
-                    {"name": "Classic Logo Tee", "price": 1200, "has_sizes": True, "has_colors": True, "rating": 4.5},
-                    {"name": "Sport Performance Tee", "price": 1500, "has_sizes": True, "has_colors": True, "rating": 4.4},
-                    {"name": "Vintage Graphic Tee", "price": 1000, "has_sizes": True, "has_colors": True, "rating": 4.3},
-                ]
-            },
-            "Dresses": {
-                "brand_names": ["Zara", "H&M", "Uniqlo", "Forever 21", "Mango"],
-                "products": [
-                    {"name": "Floral Summer Dress", "price": 2500, "has_sizes": True, "has_colors": True, "rating": 4.6},
-                    {"name": "Little Black Dress", "price": 3500, "has_sizes": True, "has_colors": False, "rating": 4.7},
-                    {"name": "Maxi Beach Dress", "price": 2800, "has_sizes": True, "has_colors": True, "rating": 4.5},
-                ]
-            },
-            "Sofas": {
-                "brand_names": ["IKEA", "Ashley", "Pottery Barn", "West Elm", "Crate & Barrel"],
-                "products": [
-                    {"name": "EKTORP 3-seat Sofa", "price": 25000, "has_sizes": False, "has_colors": True, "rating": 4.4},
-                    {"name": "KIVIK Corner Sofa", "price": 35000, "has_sizes": False, "has_colors": True, "rating": 4.5},
-                    {"name": "SÖDERHAMN Modular Sofa", "price": 30000, "has_sizes": False, "has_colors": True, "rating": 4.3},
-                ]
-            },
-            "Moisturizers": {
-                "brand_names": ["L'Oreal", "Neutrogena", "Clinique", "CeraVe", "La Roche-Posay"],
-                "products": [
-                    {"name": "Hydra-Boost Daily Moisturizer", "price": 800, "has_sizes": False, "has_colors": False, "rating": 4.6},
-                    {"name": "Anti-Aging Night Cream", "price": 1500, "has_sizes": False, "has_colors": False, "rating": 4.7},
-                    {"name": "Oil-Free Face Lotion", "price": 600, "has_sizes": False, "has_colors": False, "rating": 4.5},
-                ]
-            },
+        self.stdout.write(f"Found {len(leaf_categories)} leaf categories")
+        
+        # Get all brands
+        brands = Brand.objects.all()
+        sizes = Size.objects.all()
+        colors = Color.objects.all()
+        
+        # Product name adjectives and features for generating realistic names
+        adjectives = ["Premium", "Professional", "Advanced", "Deluxe", "Ultimate", "Essential", "Classic", "Modern", 
+                     "Elegant", "Smart", "Elite", "Superior", "Compact", "Lightweight", "Portable", "Digital"]
+        
+        features = ["Plus", "Pro", "Ultra", "Max", "Elite", "Series", "Edition", "Collection", "Line", 
+                   "Signature", "Limited", "Special", "Enhanced", "Improved", "NextGen"]
+        
+        # Define category-brand mapping for more logical brand selection
+        category_brand_mapping = {
+            "Electronics": ["Samsung Electronics", "Apple", "Sony", "LG Electronics", "Xiaomi", "Huawei", "OnePlus", "Google", "Microsoft", "Asus"],
+            "Fashion": ["Nike", "Adidas", "Zara", "H&M", "Gucci", "Puma", "Under Armour", "Levi's", "Calvin Klein", "Ralph Lauren"],
+            "Home & Furniture": ["IKEA", "Bosch", "Philips", "Dyson", "KitchenAid", "Whirlpool", "Samsung Home", "LG Home", "Panasonic", "Sharp"],
+            "Beauty & Personal Care": ["L'Oreal", "Maybelline", "MAC", "Nivea", "Dove", "Garnier", "Neutrogena", "Revlon", "Clinique", "Estee Lauder"],
+            "Sports & Outdoors": ["Nike Sports", "Adidas Sports", "Under Armour Sports", "Puma Sports", "Reebok", "New Balance", "The North Face", "Columbia", "Asics", "Mizuno"],
+            "Gaming": ["Sony Gaming", "Microsoft Gaming", "Nintendo", "Razer", "Logitech", "SteelSeries", "Corsair", "ASUS ROG", "Alienware", "HyperX"],
+            "Baby Products": ["Pampers", "Huggies", "Johnson & Johnson", "Gerber", "Fisher-Price", "Philips Avent", "MAM", "NUK", "Chicco", "Graco"],
+            "Computing": ["Dell", "HP", "Lenovo", "ASUS Computing", "Acer", "MSI", "Intel", "AMD", "Western Digital", "Seagate"],
+            "Phones & Tablets": ["Apple Mobile", "Samsung Mobile", "Xiaomi Mobile", "Huawei Mobile", "OnePlus Mobile", "Google Mobile", "OPPO", "Vivo", "Realme", "Nothing"],
+            "Appliances": ["Samsung Appliances", "LG Appliances", "Bosch Appliances", "Whirlpool", "Electrolux", "Miele", "Panasonic Appliances", "Sharp Appliances", "Philips Appliances", "Dyson Appliances"],
+            "Health & Beauty": ["L'Oreal", "Maybelline", "MAC", "Nivea", "Dove", "Garnier", "Neutrogena", "Revlon", "Clinique", "Estee Lauder"],
+            "Sporting Goods": ["Nike Sports", "Adidas Sports", "Under Armour Sports", "Puma Sports", "Reebok", "New Balance", "The North Face", "Columbia", "Asics", "Mizuno"],
+            "Supermarket": ["Nestle", "Procter & Gamble", "Unilever", "Coca-Cola", "PepsiCo", "Kraft Heinz", "Kellogg's", "General Mills", "Mars", "Colgate-Palmolive"],
+            "Televisions & Audio": ["Samsung Electronics", "LG Electronics", "Sony", "Panasonic", "Sharp", "Philips", "TCL", "Hisense", "Bose", "JBL"],
         }
-        
-        for category_name, template in product_templates.items():
-            # Find category
-            category = Category.objects.filter(name=category_name).first()
-            if not category:
-                continue
+
+        # Loop through each leaf category and create 10 products
+        for category in leaf_categories:
+            # Get the parent hierarchy to determine relevant brands
+            current = category
+            hierarchy = [current.name]
+            while current.parent:
+                current = current.parent
+                hierarchy.append(current.name)
+            
+            # Get relevant brands for this category based on mapping
+            relevant_brands = []
+            
+            # Find the most relevant parent category for mapping
+            mapped_category = None
+            for cat_name in hierarchy:
+                for mapping_key in category_brand_mapping.keys():
+                    if mapping_key.lower() in cat_name.lower() or cat_name.lower() in mapping_key.lower():
+                        mapped_category = mapping_key
+                        break
+                if mapped_category:
+                    break
+            
+            if mapped_category:
+                # Get brands from mapping
+                brand_names = category_brand_mapping[mapped_category]
+                for brand_name in brand_names:
+                    for brand in brands:
+                        if brand_name.lower() in brand.name.lower():
+                            relevant_brands.append(brand)
+            
+            if not relevant_brands:  # If no relevant brands found, use random brands
+                relevant_brands = random.sample(list(brands), min(5, brands.count()))
+            
+            # Create 10 products for this category
+            for i in range(1, 11):
+                # Select a brand for this product
+                brand = random.choice(relevant_brands)
                 
-            for product_data in template["products"]:
-                # Find appropriate brand
-                brand = Brand.objects.filter(name__in=template["brand_names"]).order_by('?').first()
-                if not brand:
-                    brand = random.choice(brands)
+                # Generate product name
+                base_name = category.name
+                if random.random() < 0.3:  # 30% chance to include brand in name
+                    product_name = f"{brand.name} {random.choice(adjectives)} {base_name}"
+                else:
+                    product_name = f"{random.choice(adjectives)} {base_name} {random.choice(features)}"
                 
-                # Generate unique SKU
-                sku = f"{brand.name[:3].upper()}-{product_data['name'][:5].replace(' ', '').upper()}-{random.randint(10000, 99999)}"
+                # Make the name unique with a model number/identifier
+                if random.random() < 0.7:  # 70% chance to add a model number
+                    model_series = random.choice(["A", "B", "C", "E", "G", "H", "J", "M", "P", "S", "X", "Z"])
+                    model_number = random.randint(1, 9999)
+                    product_name = f"{product_name} {model_series}{model_number}"
                 
-                # Create product
+                # Generate SKU (unique identifier)
+                sku_prefix = ''.join([word[0] for word in brand.name.split()[:2]]).upper()
+                sku_middle = ''.join([word[0] for word in category.name.split()[:2]]).upper()
+                sku_suffix = f"{random.randint(1000, 9999)}"
+                sku = f"{sku_prefix}-{sku_middle}-{sku_suffix}"
+                
+                # Generate price based on category depth (deeper categories are more specialized products)
+                depth = 0
+                temp_cat = category
+                while temp_cat.parent:
+                    depth += 1
+                    temp_cat = temp_cat.parent
+                
+                base_price = random.uniform(50, 100) * (depth + 1)
+                price = round(base_price * (1 + random.uniform(-0.1, 0.2)), 2)  # Vary by ±10-20%
+                
+                # Add sale price to some products (40% chance)
+                sale_price = None
+                sale_start_date = None
+                sale_end_date = None
+                
+                if random.random() < 0.4:  # 40% chance for sale
+                    discount = random.uniform(0.05, 0.7)  # 5-70% discount
+                    sale_price = round(price * (1 - discount), 2)
+                    
+                    # Set sale period (between now and 30 days in future)
+                    now = timezone.now()
+                    sale_start_date = now - timedelta(days=random.randint(0, 15))
+                    sale_end_date = now + timedelta(days=random.randint(5, 30))
+                
+                # Generate stock quantity
+                if "Limited" in product_name:
+                    stock_quantity = random.randint(1, 10)
+                else:
+                    stock_quantity = random.randint(10, 100)
+                
+                # Generate description
+                description = self.generate_product_description(category, product_name, brand)
+                
+                # Generate specifications based on category
+                specifications = self.generate_product_specifications(category, product_name)
+                
+                # Determine if product is featured (10% chance)
+                is_featured = random.random() < 0.1
+                
+                # Determine if product is sponsored (5% chance)
+                is_sponsored = random.random() < 0.05
+                
+                # Generate physical dimensions (50% chance)
+                weight = None
+                length = None
+                width = None
+                height = None
+                
+                if random.random() < 0.5:
+                    weight = round(random.uniform(0.1, 10.0), 2)
+                    length = round(random.uniform(10, 100), 2)
+                    width = round(random.uniform(10, 100), 2)
+                    height = round(random.uniform(5, 50), 2)
+                
+                # Generate ratings data
+                rating_average = round(random.uniform(3.5, 5.0), 1)
+                rating_count = random.randint(0, 1000)
+                
+                # Generate quantity sold based on rating count
+                quantity_sold = int(rating_count * random.uniform(1.0, 3.0))
+                
+                # Set material for applicable categories
+                material = ""
+                if any(word in category.name.lower() for word in ["shirt", "dress", "clothing", "fabric", "wear", "apparel", "fashion"]):
+                    materials = ["Cotton", "Polyester", "Wool", "Silk", "Linen", "Leather", "Denim", "Nylon", "Spandex", "Cashmere"]
+                    material = random.choice(materials)
+                elif any(word in category.name.lower() for word in ["furniture", "sofa", "chair", "table", "bed"]):
+                    materials = ["Wood", "Metal", "Glass", "Plastic", "Fabric", "Leather", "Bamboo", "Rattan", "MDF", "Particleboard"]
+                    material = random.choice(materials)
+                
+                # Generate meta data for SEO
+                meta_title = product_name[:199]  # Ensure within 200 char limit
+                meta_description = f"Buy {product_name} online. {description[:200]}..."
+                meta_keywords = f"{brand.name}, {category.name}, {', '.join(product_name.split()[:5])}"
+                
+                # Set a realistic launch date (between 3 years ago and now)
+                now = timezone.now()
+                launched_at = now - timedelta(days=random.randint(0, 1095))  # Up to 3 years ago
+                
                 try:
-                    # Calculate prices
-                    base_price = Decimal(str(product_data["price"]))
-                    sale_price = None
-                    sale_start = None
-                    sale_end = None
-                    
-                    # 30% chance of being on sale
-                    if random.random() < 0.3:
-                        discount_percentage = random.uniform(10, 40)
-                        sale_price = base_price * Decimal(1 - discount_percentage/100)
-                        sale_price = sale_price.quantize(Decimal('0.01'))
-                        sale_start = timezone.now() - timedelta(days=random.randint(0, 7))
-                        sale_end = timezone.now() + timedelta(days=random.randint(7, 30))
-                    
-                    # Generate realistic description based on category and product
-                    description = self.generate_product_description(category, product_data["name"], brand)
-                    
-                    # Get specifications from product data or generate them
-                    specifications = product_data.get("specifications", self.generate_product_specifications(category, product_data["name"]))
-                    
-                    # Calculate random quantity sold based on rating
-                    quantity_sold = int(product_data["rating"] * 100) + random.randint(0, 500)
-                    
-                    # Calculate rating count based on rating (higher ratings = more reviews)
-                    rating_count = int(product_data["rating"] * 200) + random.randint(50, 500)
-                    
-                    # Calculate stock quantity based on category and price
-                    if "Electronics" in category.name:
-                        stock_quantity = random.randint(5, 50)  # Lower stock for expensive electronics
-                    else:
-                        stock_quantity = random.randint(20, 200)
-                    
-                    # Get dimensions from product data or generate them
-                    dimensions = product_data.get("dimensions", {})
-                    
-                    # Create the product with all fields
+                    # Create the product
                     product = Product.objects.create(
-                        # Basic Information
-                        name=f"{brand.name} {product_data['name']}",
-                        slug=slugify(f"{brand.name}-{product_data['name']}-{sku}"),
+                        name=product_name,
+                        slug=slugify(f"{product_name}-{sku}"),
                         sku=sku,
+                        description=description,
                         category=category,
                         brand=brand,
-                        
-                        # Descriptions
-                        description=description,
-                        specifications=specifications,
-                        
-                        # Pricing
-                        price=base_price,
+                        price=price,
                         sale_price=sale_price,
-                        sale_start_date=sale_start,
-                        sale_end_date=sale_end,
-                        
-                        # Inventory
+                        sale_start_date=sale_start_date,
+                        sale_end_date=sale_end_date,
                         stock_quantity=stock_quantity,
                         quantity_sold=quantity_sold,
                         track_inventory=True,
-                        allow_backorder=False,
-                        
-                        # Shipping
-                        weight=Decimal(str(product_data.get("weight", random.uniform(0.1, 5.0)))),
-                        length=Decimal(str(dimensions.get("length", random.uniform(10, 100)))),
-                        width=Decimal(str(dimensions.get("width", random.uniform(10, 100)))),
-                        height=Decimal(str(dimensions.get("height", random.uniform(10, 100)))),
-                        
-                        # Features
-                        is_featured=random.random() < 0.2,  # 20% chance of being featured
-                        is_sponsored=random.random() < 0.1,  # 10% chance of being sponsored
-                        
-                        # SEO
-                        meta_title=f"Buy {brand.name} {product_data['name']} Online",
-                        meta_description=f"Shop for {brand.name} {product_data['name']} at the best prices. "
-                                       f"Free shipping available. 100% authentic products.",
-                        meta_keywords=f"{brand.name}, {product_data['name']}, {category.name}, "
-                                    f"{category.parent.name if category.parent else ''}",
-                        
-                        # Ratings
-                        rating_average=Decimal(str(product_data["rating"])),
+                        allow_backorder=random.random() < 0.2,  # 20% chance to allow backorders
+                        weight=weight,
+                        length=length,
+                        width=width,
+                        height=height,
+                        is_featured=is_featured,
+                        is_sponsored=is_sponsored,
+                        meta_title=meta_title,
+                        meta_description=meta_description,
+                        meta_keywords=meta_keywords,
+                        specifications=specifications,
+                        rating_average=rating_average,
                         rating_count=rating_count,
-                        
-                        # Launch date
-                        launched_at=timezone.now() - timedelta(days=random.randint(0, 365)),
-                        
-                        # Material (for fashion products)
-                        material=random.choice(["Cotton", "Polyester", "Wool", "Leather", "Denim", "Silk", "Linen"])
-                        if category.parent and category.parent.parent and category.parent.parent.name == "Fashion"
-                        else ""
+                        material=material,
+                        launched_at=launched_at
                     )
                     
-                    # Add sizes if applicable
-                    if product_data.get("has_sizes", False):
-                        # Add relevant sizes based on category
-                        if "Shoes" in category.name:
-                            # For shoes, use all sizes
-                            product.sizes.set(sizes)
-                        else:
-                            # For clothing, use common sizes
-                            common_sizes = ["S", "M", "L", "XL", "XXL"]
-                            selected_sizes = Size.objects.filter(name__in=common_sizes)
-                            product.sizes.set(selected_sizes)
+                    # Add sizes if applicable to this category
+                    if any(word in category.name.lower() for word in ["clothing", "apparel", "wear", "shirt", "dress", "pants", "shoes"]):
+                        # For clothing, add appropriate sizes
+                        selected_sizes = random.sample(list(sizes), min(random.randint(4, 7), len(sizes)))
+                        product.sizes.add(*selected_sizes)
                     
-                    # Add colors if applicable
-                    if product_data.get("has_colors", False):
-                        # Select 2-5 random colors
-                        num_colors = random.randint(2, 5)
-                        selected_colors = random.sample(colors, min(num_colors, len(colors)))
-                        product.colors.set(selected_colors)
+                    # Add colors to all products
+                    selected_colors = random.sample(list(colors), min(random.randint(1, 5), len(colors)))
+                    product.colors.add(*selected_colors)
                     
-                    # Create product images (use default image)
-                    for i in range(random.randint(3, 5)):
-                        ProductImage.objects.create(
-                            product=product,
-                            image="product_images/default.jpg",
-                            alt_text=f"{product.name} - Image {i+1}",
-                            is_primary=(i == 0),
-                            order=i
-                        )
+                    # Create primary product image using default image
+                    ProductImage.objects.create(
+                        product=product,
+                        image="default.jpg",
+                        alt_text=f"{product_name} - Main Image",
+                        is_primary=True,
+                        order=0
+                    )
                     
-                    self.created_products.append(product)
-                    print(f"Created product: {product.name}")
+                    # Add 1-3 additional product images (30% chance)
+                    if random.random() < 0.3:
+                        for j in range(1, random.randint(2, 4)):
+                            ProductImage.objects.create(
+                                product=product,
+                                image="default.jpg",
+                                alt_text=f"{product_name} - Additional Image {j}",
+                                is_primary=False,
+                                order=j
+                            )
                     
+                    self.stdout.write(f"Created product {i}/10 for category '{category.name}': {product.name}")
                 except Exception as e:
-                    print(f"Error creating product {product_data['name']}: {str(e)}")
+                    self.stdout.write(self.style.ERROR(f"Error creating product for '{category.name}': {str(e)}"))
+                    continue
+            
+            self.stdout.write(self.style.SUCCESS(f"Created products for '{category.name}'"))
+        
+        self.stdout.write(self.style.SUCCESS(f"Created products for all {len(leaf_categories)} leaf categories"))
     
     def generate_product_description(self, category, product_name, brand):
         """Generate a realistic product description based on category and product"""
-        descriptions = {
-            "Electronics": [
-                f"Experience the latest technology with the {brand.name} {product_name}. "
-                f"This cutting-edge device combines powerful performance with sleek design. "
-                f"Perfect for both work and entertainment, it features advanced specifications "
-                f"and innovative features that set new standards in the industry.",
-                
-                f"The {brand.name} {product_name} represents the pinnacle of technological innovation. "
-                f"With its premium build quality and state-of-the-art features, this device "
-                f"delivers an exceptional user experience that exceeds expectations.",
-                
-                f"Discover the future of technology with the {brand.name} {product_name}. "
-                f"This revolutionary device offers unmatched performance, stunning visuals, "
-                f"and intuitive controls that make everyday tasks effortless."
-            ],
-            "Fashion": [
-                f"Elevate your style with the {brand.name} {product_name}. "
-                f"Crafted from premium materials, this piece combines comfort and fashion "
-                f"to create a versatile addition to your wardrobe.",
-                
-                f"The {brand.name} {product_name} is a timeless piece that never goes out of style. "
-                f"Perfect for any occasion, it offers both comfort and elegance in equal measure.",
-                
-                f"Make a statement with the {brand.name} {product_name}. "
-                f"This carefully designed piece features premium quality materials and "
-                f"expert craftsmanship for a look that's uniquely yours."
-            ],
-            "Home & Kitchen": [
-                f"Transform your living space with the {brand.name} {product_name}. "
-                f"This beautifully designed piece combines functionality with style "
-                f"to create the perfect addition to your home.",
-                
-                f"The {brand.name} {product_name} brings comfort and elegance to your home. "
-                f"Crafted with attention to detail, it offers both practicality and "
-                f"aesthetic appeal for modern living.",
-                
-                f"Enhance your home with the {brand.name} {product_name}. "
-                f"This thoughtfully designed piece offers the perfect blend of "
-                f"style, comfort, and functionality."
-            ],
-            "Beauty & Personal Care": [
-                f"Discover the secret to radiant beauty with {brand.name} {product_name}. "
-                f"This premium product is formulated with high-quality ingredients "
-                f"to deliver exceptional results for your skin.",
-                
-                f"The {brand.name} {product_name} is your daily essential for maintaining "
-                f"healthy, beautiful skin. Its advanced formula works to nourish and "
-                f"protect your skin's natural beauty.",
-                
-                f"Experience luxury skincare with {brand.name} {product_name}. "
-                f"This carefully crafted product combines science and nature to "
-                f"deliver visible results you'll love."
-            ]
-        }
-        
-        # Get the main category
+        # Get category hierarchy to determine the product type
         main_category = category
         while main_category.parent:
             main_category = main_category.parent
         
-        # Get appropriate description based on main category
-        category_descriptions = descriptions.get(main_category.name, descriptions["Fashion"])
-        return random.choice(category_descriptions)
+        # Define opening statements
+        openings = [
+            f"Introducing the {product_name}, a premium offering from {brand.name}.",
+            f"Experience unparalleled quality with the {product_name} by {brand.name}.",
+            f"The {product_name} represents {brand.name}'s commitment to excellence.",
+            f"Discover the exceptional features of the {brand.name} {product_name}.",
+            f"Meet the {product_name}, the latest innovation from {brand.name}."
+        ]
+        
+        # Define category-specific feature highlights
+        features = {
+            "Electronics": [
+                "advanced technology", "intuitive interface", "stunning display", 
+                "lightning-fast performance", "intelligent design", "wireless connectivity",
+                "long battery life", "immersive experience", "superior sound quality"
+            ],
+            "Fashion": [
+                "premium materials", "elegant design", "comfortable fit", "timeless style", 
+                "durable construction", "versatile options", "attention to detail", 
+                "contemporary aesthetics", "perfect for any occasion"
+            ],
+            "Home & Furniture": [
+                "exceptional comfort", "sturdy construction", "elegant design", 
+                "space-saving features", "premium materials", "easy assembly", 
+                "versatile functionality", "timeless appeal", "perfect dimensions"
+            ],
+            "Beauty & Personal Care": [
+                "gentle formula", "natural ingredients", "long-lasting effects", 
+                "dermatologically tested", "suitable for all skin types", "refreshing scent", 
+                "eco-friendly packaging", "visible results", "luxurious experience"
+            ],
+            "Sports & Outdoors": [
+                "durable construction", "weather-resistant materials", "ergonomic design", 
+                "lightweight build", "high performance", "versatile functionality", 
+                "professional-grade quality", "enhanced stability", "improved comfort"
+            ],
+            "Gaming": [
+                "immersive experience", "responsive controls", "stunning graphics", 
+                "seamless gameplay", "customizable features", "competitive edge", 
+                "high-resolution display", "enhanced audio", "tactile feedback"
+            ],
+            "Baby Products": [
+                "gentle materials", "safety-first design", "easy cleaning", 
+                "comfortable for baby", "adjustable features", "practical for parents", 
+                "BPA-free construction", "adorable design", "developmental benefits"
+            ],
+            "Phones & Tablets": [
+                "crystal-clear display", "powerful processor", "all-day battery life", 
+                "stunning camera system", "sleek design", "fast charging", 
+                "expanded storage", "enhanced security", "seamless connectivity"
+            ],
+            "Appliances": [
+                "energy-efficient operation", "quiet performance", "intuitive controls", 
+                "spacious capacity", "sleek design", "durable construction", 
+                "advanced technology", "time-saving features", "easy maintenance"
+            ]
+        }
+        
+        # Define benefits statements
+        benefits = [
+            "Designed to enhance your daily experience with its exceptional quality and performance.",
+            "Combines style and functionality to deliver an outstanding user experience every time.",
+            "Perfect for those who appreciate attention to detail and superior craftsmanship.",
+            "An excellent choice for discerning customers who demand the very best.",
+            "Created with your needs in mind, offering the perfect balance of form and function."
+        ]
+        
+        # Define concluding statements
+        conclusions = [
+            f"Order your {product_name} today and discover why {brand.name} is a leader in {main_category.name.lower()}.",
+            f"Elevate your experience with the {product_name} – the smart choice for quality and value.",
+            f"Don't miss out on the exceptional quality of the {product_name}, available now for a limited time.",
+            f"Make the {product_name} part of your collection and experience the {brand.name} difference.",
+            f"Invest in quality with the {product_name} and enjoy years of reliable performance."
+        ]
+        
+        # Get relevant features for this category
+        category_features = features.get(main_category.name, features["Electronics"])
+        
+        # Select random elements to build the description
+        opening = random.choice(openings)
+        feature_list = random.sample(category_features, min(4, len(category_features)))
+        feature_text = f"This exceptional product offers {', '.join(feature_list[:-1])}, and {feature_list[-1]}."
+        benefit = random.choice(benefits)
+        conclusion = random.choice(conclusions)
+        
+        # Combine elements into a coherent description
+        description = f"{opening} {feature_text} {benefit} {conclusion}"
+        
+        return description
     
     def generate_product_specifications(self, category, product_name):
         """Generate realistic product specifications based on category"""
         specs = {
-            "warranty": f"{random.choice([1, 2, 3])} years",
-            "material": random.choice(["Premium", "Standard", "Eco-friendly"]),
-            "origin": random.choice(["USA", "China", "Germany", "Japan", "Korea"]),
+            "Model": f"{product_name.split()[-1] if len(product_name.split()) > 1 else 'Standard'}",
+            "Warranty": f"{random.choice([1, 2, 3, 5])} years",
+            "Country of Origin": random.choice(["China", "USA", "Japan", "Germany", "South Korea", "Vietnam", "Malaysia", "India", "Taiwan", "Thailand"]),
         }
         
+        # Get category hierarchy
+        main_category = category
+        while main_category.parent:
+            main_category = main_category.parent
+            
         # Add category-specific specifications
-        if "Electronics" in category.name:
+        if "Electronics" in main_category.name or "Phone" in category.name or "Tablet" in category.name or "Computer" in category.name:
             specs.update({
-                "battery_life": f"{random.randint(8, 24)} hours",
-                "screen_size": f"{random.choice(['5.5', '6.1', '6.7', '13.3', '15.6', '17.3'])} inches",
-                "processor": random.choice(["Intel Core i7", "AMD Ryzen 9", "Apple M2", "Snapdragon 8 Gen 2"]),
-                "memory": f"{random.choice(['8', '16', '32'])}GB",
-                "storage": f"{random.choice(['128', '256', '512', '1TB'])}"
+                "Display": f"{random.choice(['5.5', '6.1', '6.7', '7.0', '10.2', '11', '12.9', '13.3', '14', '15.6', '17', '24', '27', '32', '43', '50', '55', '65'])} inch {random.choice(['LCD', 'LED', 'OLED', 'AMOLED', 'IPS', 'Retina', 'Super Retina XDR', 'Dynamic AMOLED', 'QLED'])}",
+                "Processor": random.choice(["Snapdragon 8 Gen 2", "Apple A17 Pro", "MediaTek Dimensity 9000", "Exynos 2200", "Intel Core i7", "AMD Ryzen 9", "Apple M2", "Intel Core i9", "Qualcomm Snapdragon 888"]),
+                "RAM": f"{random.choice(['4', '6', '8', '12', '16', '32', '64'])} GB",
+                "Storage": f"{random.choice(['64', '128', '256', '512', '1', '2'])} {random.choice(['GB', 'GB', 'GB', 'GB', 'TB', 'TB'])}",
+                "Battery": f"{random.randint(2000, 6000)} mAh" if "Phone" in category.name else f"{random.randint(5000, 12000)} mAh",
+                "Operating System": random.choice(["Android 14", "iOS 17", "Windows 11", "macOS Sonoma", "iPadOS 17", "Chrome OS", "Linux"])
             })
-        elif "Fashion" in category.name:
+            
+        elif "Fashion" in main_category.name or "Clothing" in category.name or "Wear" in category.name:
             specs.update({
-                "care_instructions": random.choice(["Machine wash cold", "Hand wash only", "Dry clean only"]),
-                "fit": random.choice(["Regular", "Slim", "Relaxed", "Oversized"]),
-                "style": random.choice(["Casual", "Formal", "Sporty", "Classic"])
+                "Material": random.choice(["Cotton", "Polyester", "Wool", "Silk", "Linen", "Leather", "Denim", "Nylon", "Spandex", "Cashmere"]),
+                "Care Instructions": random.choice(["Machine wash cold", "Hand wash only", "Dry clean only", "Tumble dry low", "Wash with similar colors", "Do not bleach"]),
+                "Fit": random.choice(["Regular", "Slim", "Relaxed", "Oversized", "Athletic", "Tailored", "Loose", "Skinny", "Straight"]),
+                "Occasion": random.choice(["Casual", "Formal", "Business", "Sports", "Evening", "Beach", "Outdoor", "Everyday", "Special events"]),
+                "Season": random.choice(["All seasons", "Summer", "Winter", "Spring/Fall", "Rainy season"])
             })
-        elif "Home & Kitchen" in category.name:
+            
+        elif "Furniture" in main_category.name or "Home" in category.name:
             specs.update({
-                "dimensions": f"{random.randint(50, 200)}x{random.randint(50, 200)}x{random.randint(50, 200)} cm",
-                "assembly_required": random.choice([True, False]),
-                "color_options": random.randint(3, 8)
+                "Material": random.choice(["Wood", "Metal", "Glass", "Plastic", "Fabric", "Leather", "Bamboo", "Rattan", "MDF", "Particleboard"]),
+                "Dimensions": f"{random.randint(50, 250)}L x {random.randint(50, 150)}W x {random.randint(40, 120)}H cm",
+                "Weight Capacity": f"{random.randint(100, 300)} kg",
+                "Assembly Required": random.choice(["Yes", "No", "Partial"]),
+                "Style": random.choice(["Modern", "Contemporary", "Traditional", "Scandinavian", "Industrial", "Bohemian", "Mid-Century", "Rustic", "Minimalist"]),
+                "Color/Finish": random.choice(["Natural wood", "White", "Black", "Gray", "Brown", "Walnut", "Oak", "Cherry", "Espresso", "Beige"])
             })
-        elif "Beauty & Personal Care" in category.name:
+            
+        elif "Beauty" in main_category.name or "Care" in category.name:
             specs.update({
-                "skin_type": random.choice(["All skin types", "Dry skin", "Oily skin", "Combination skin"]),
-                "volume": f"{random.choice(['30', '50', '100', '200'])}ml",
-                "cruelty_free": random.choice([True, False])
+                "Ingredients": "Water, Glycerin, Fragrance, " + ", ".join(random.sample(["Aloe Vera Extract", "Vitamin E", "Retinol", "Hyaluronic Acid", "Ceramides", "Shea Butter", "Niacinamide", "Salicylic Acid", "Peptides", "Collagen"], 3)),
+                "Skin Type": random.choice(["All skin types", "Dry", "Oily", "Combination", "Sensitive", "Normal", "Mature"]),
+                "Benefits": ", ".join(random.sample(["Moisturizing", "Anti-aging", "Brightening", "Exfoliating", "Soothing", "Calming", "Hydrating", "Firming", "Mattifying"], 2)),
+                "Application": random.choice(["Apply daily", "Use morning and night", "Use as needed", "Apply to damp skin", "Massage gently", "Apply liberally"]),
+                "Volume/Weight": f"{random.choice(['30', '50', '100', '150', '200', '250', '500'])} {random.choice(['ml', 'g'])}"
             })
+            
+        elif "Sports" in main_category.name or "Fitness" in category.name:
+            specs.update({
+                "Material": random.choice(["Nylon", "Polyester", "Spandex", "Cotton blend", "Neoprene", "Rubber", "Aluminum", "Steel", "Carbon fiber"]),
+                "Weight": f"{random.randint(1, 30)} kg" if "Equipment" in category.name else f"{random.randint(100, 500)} g",
+                "Features": ", ".join(random.sample(["Adjustable resistance", "Easy grip", "Non-slip surface", "Compact design", "Portable", "Water resistant", "Shock absorption", "Breathable", "Lightweight"], 3)),
+                "Recommended For": random.choice(["Beginners", "Intermediate", "Advanced", "Professional", "All levels"]),
+                "Usage": random.choice(["Indoor", "Outdoor", "Both indoor and outdoor", "Gym", "Home workouts", "Professional training"])
+            })
+            
+        elif "Gaming" in main_category.name:
+            specs.update({
+                "Platform": random.choice(["PlayStation 5", "PlayStation 4", "Xbox Series X", "Xbox One", "Nintendo Switch", "PC", "Multiple platforms"]),
+                "Genre": random.choice(["Action", "Adventure", "RPG", "FPS", "Strategy", "Simulation", "Sports", "Racing", "Puzzle", "Horror"]),
+                "Players": random.choice(["Single player", "Multiplayer", "1-2 players local", "2-4 players local", "Online multiplayer", "1-8 players online"]),
+                "Age Rating": random.choice(["E (Everyone)", "E10+ (Everyone 10+)", "T (Teen)", "M (Mature)", "A (Adult)"]),
+                "Release Date": f"{random.choice(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'])} {random.randint(2018, 2023)}"
+            })
+            
+        elif "Baby" in main_category.name:
+            specs.update({
+                "Age Range": random.choice(["0-3 months", "3-6 months", "6-12 months", "1-2 years", "2-3 years", "3-5 years", "All ages"]),
+                "Material": random.choice(["BPA-free plastic", "Cotton", "Silicone", "Wood", "Polyester", "Bamboo fiber", "Organic cotton"]),
+                "Safety Features": ", ".join(random.sample(["Non-toxic", "Phthalate-free", "Choking hazard tested", "Anti-slip", "Hypoallergenic", "Lead-free", "Flame resistant"], 2)),
+                "Care Instructions": random.choice(["Machine washable", "Hand wash only", "Wipe clean", "Dishwasher safe", "Sterilizer safe"]),
+                "Certification": random.choice(["ASTM Certified", "CPSC Compliant", "EN71 Certified", "CE Certified", "FDA Approved"])
+            })
+            
+        elif "Appliances" in main_category.name:
+            specs.update({
+                "Power": f"{random.randint(500, 3000)} W",
+                "Capacity": f"{random.randint(1, 30)} L" if "Kitchen" in category.name else f"{random.randint(5, 500)} L",
+                "Energy Efficiency": random.choice(["A+++", "A++", "A+", "A", "B", "Energy Star Certified"]),
+                "Control Type": random.choice(["Digital", "Manual", "Touch", "Remote", "Smart (app-controlled)", "Voice-controlled"]),
+                "Dimensions": f"{random.randint(30, 100)}L x {random.randint(30, 80)}W x {random.randint(30, 180)}H cm",
+                "Features": ", ".join(random.sample(["Timer", "Auto shut-off", "Multiple settings", "LCD display", "Quiet operation", "Quick start", "Child lock", "Memory function"], 3))
+            })
+            
+        # Add random additional specification based on product name keywords
+        product_words = product_name.lower().split()
         
+        if any(tech in product_words for tech in ["smart", "digital", "electronic", "tech", "wireless"]):
+            specs["Connectivity"] = ", ".join(random.sample(["Bluetooth", "Wi-Fi", "NFC", "USB-C", "Lightning", "HDMI"], min(3, random.randint(1, 3))))
+            
+        if any(premium in product_words for premium in ["premium", "deluxe", "elite", "professional", "pro"]):
+            specs["Special Features"] = ", ".join(random.sample(["Premium finish", "Exclusive design", "Professional grade", "Enhanced durability", "Lifetime support"], min(2, random.randint(1, 2))))
+            
+        if any(eco in product_words for eco in ["eco", "green", "sustainable", "natural", "organic"]):
+            specs["Eco-Friendly"] = ", ".join(random.sample(["Recycled materials", "Sustainable production", "Energy efficient", "Reduced packaging", "Carbon neutral"], min(2, random.randint(1, 2))))
+            
         return specs
     
     def create_flash_sales(self):
         """Create flash sales with some products"""
-        if not self.created_products:
-            print("No products available for flash sales")
+        products = Product.objects.all()
+        if not products.exists():
+            self.stdout.write(self.style.WARNING("No products available for flash sales"))
             return
             
         flash_sales_data = [
@@ -1070,13 +1328,17 @@ class DatabasePopulator:
             },
         ]
         
-        for sale_data in flash_sales_data:
+        for i, sale_data in enumerate(flash_sales_data):
             start_time = timezone.now() + timedelta(hours=random.randint(0, 24))
             end_time = start_time + timedelta(hours=sale_data["duration_hours"])
             
+            # Create unique slug by adding timestamp
+            timestamp = int(timezone.now().timestamp())
+            unique_slug = f"{slugify(sale_data['name'])}-{timestamp}-{i}"
+            
             flash_sale = FlashSale.objects.create(
                 name=sale_data["name"],
-                slug=slugify(sale_data["name"]),
+                slug=unique_slug,
                 description=sale_data["description"],
                 start_time=start_time,
                 end_time=end_time,
@@ -1084,8 +1346,8 @@ class DatabasePopulator:
             )
             
             # Add 5-10 random products to the flash sale
-            num_products = random.randint(5, min(10, len(self.created_products)))
-            selected_products = random.sample(self.created_products, num_products)
+            num_products = random.randint(5, min(10, products.count()))
+            selected_products = random.sample(list(products), num_products)
             
             for product in selected_products:
                 discount = random.randint(*sale_data["discount_range"])
@@ -1097,13 +1359,12 @@ class DatabasePopulator:
                     quantity_sold=random.randint(0, 10)
                 )
             
-            print(f"Created flash sale: {flash_sale.name} with {num_products} products")
-
+            self.stdout.write(f"Created flash sale: {flash_sale.name} with {num_products} products")
 
 # Execute the script when run directly
 if __name__ == "__main__":
-    populator = DatabasePopulator()
-    populator.run()
+    populator = Command()
+    populator.handle()
 
 # for runnign the script 
 # cd /media/king/16D8CD34D8CD1343/projects\ ITI/final-project/back-end/iti-final-django-jumia/
