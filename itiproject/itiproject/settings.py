@@ -50,18 +50,18 @@ AUTH_USER_MODEL = 'users.User'
 DJANGO_SETTINGS_MODULE = 'itiproject.settings'
 
 CSRF_COOKIE_NAME = "csrftoken"
-CSRF_COOKIE_HTTPONLY = False  # ليتمكن frontend من قراءته
+CSRF_COOKIE_HTTPONLY = False  
 SESSION_COOKIE_SAMESITE = 'strict'
-SESSION_COOKIE_SECURE = False  # اجعله True في الإنتاج مع HTTPS
-CSRF_COOKIE_SAMESITE = 'None'  # للسماح باستخدام الكوكيز عبر النطاقات
-CSRF_COOKIE_SECURE = False  # استخدم False إذا كنت تعمل على HTTP في بيئة التطوير
+SESSION_COOKIE_SECURE = False  
+CSRF_COOKIE_SAMESITE = 'None'  
+CSRF_COOKIE_SECURE = False  
 # email management #################################
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "mokhtar.jo21@gmail.com"
-EMAIL_HOST_PASSWORD = 'mjjj sybs oeqx vzxu' # your email password
+EMAIL_HOST_PASSWORD = 'uxrw utde ljbx niny'
 DEFAULT_FROM_EMAIL = 'mokhtar.jo21@gmail.com'
 ######################################################
 
@@ -163,17 +163,29 @@ WSGI_APPLICATION = 'itiproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "neondb",
+        "USER": "neondb_owner",
+        "PASSWORD": "npg_z89kRQlIMFYo",
+        "HOST": "ep-sparkling-base-a82rswf3-pooler.eastus2.azure.neon.tech",
+        "PORT": "5432",
+        "OPTIONS": {
+            "sslmode": "require",
+        },
+            }
 }
 
+
+
 FRONTEND_PAYMENT_SUCCESS_URL = "http://localhost:3000/payment-success" #mn3m
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
