@@ -169,7 +169,11 @@ class PaymobPaymentView(APIView):
             order_id = create_paymob_order(token, amount_cents)
             payment_token = generate_paymob_payment_key(token, amount_cents, order_id, billing_data)
 
-            iframe_url = f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}?payment_token={payment_token}"
+            iframe_url = (
+               f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}"
+               f"?payment_token={payment_token}&return_url={settings.FRONTEND_PAYMENT_SUCCESS_URL}"
+)
+
 
             return Response({"iframe_url": iframe_url})
         except Exception as e:
