@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.utils.text import slugify
 from .models import (
     Category, Brand, Product, ProductImage, Size, Color,
-    FlashSale, FlashSaleItem
+    FlashSale, FlashSaleItem, RecentlyViewedProduct
 )
 # ==================== CATEGORY SERIALIZERS ====================
 
@@ -433,3 +433,14 @@ class FlashSaleItemCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlashSaleItem
         fields = ['flash_sale', 'product', 'discount_percentage', 'quantity_limit']
+
+
+# ==================== RECENTLY VIEWED PRODUCTS SERIALIZER ====================
+
+class RecentlyViewedProductSerializer(serializers.ModelSerializer):
+    """Serializer for recently viewed products"""
+    product = ProductListSerializer(read_only=True)
+    
+    class Meta:
+        model = RecentlyViewedProduct
+        fields = ['id', 'product', 'viewed_at']
