@@ -1,0 +1,599 @@
+{
+  "categories": [
+    {
+      "name": "Health & Beauty",
+      "children": [
+        {
+          "name": "Personal Care",
+          "children": [
+            {"name": "Oral Care"},
+            {"name": "Feminine Care"},
+            {"name": "Shave & Hair Removal"},
+            {"name": "Deodorants"},
+            {"name": "Shower Gels"},
+            {"name": "Face Wash"}
+          ]
+        },
+        {
+          "name": "Skin Care",
+          "children": [
+            {"name": "Body"},
+            {"name": "Eyes"},
+            {"name": "Face"},
+            {"name": "Feet & Hands"},
+            {"name": "Sunscreens & Tanning oils"}
+          ]
+        },
+        {
+          "name": "Hair Care",
+          "children": [
+            {"name": "Styling Tools & Appliances"},
+            {"name": "Hair Styling Products"},
+            {"name": "Shampoo, Conditioner & Serums"},
+            {"name": "Hair Coloring"},
+            {"name": "Extensions & Wigs"},
+            {"name": "Hair Accessories"}
+          ]
+        },
+        {
+          "name": "Health Care",
+          "children": [
+            {"name": "Wellness & Relaxation"},
+            {"name": "Sexual Wellness"},
+            {"name": "Medical Supplies & Equipment"},
+            {"name": "Contact Lenses & Solutions"}
+          ]
+        },
+        {
+          "name": "Fragrance",
+          "children": [
+            {"name": "Women's Perfumes & Body Splashes"},
+            {"name": "Men's Perfumes"},
+            {"name": "Children's Perfumes"}
+          ]
+        },
+        {
+          "name": "Makeup",
+          "children": [
+            {"name": "Face Makeup"},
+            {"name": "Lip Makeup"},
+            {"name": "Eye Makeup"},
+            {"name": "Makeup Remover"},
+            {"name": "Makeup Brushes & Tools"},
+            {"name": "Nails"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sporting Goods",
+      "children": [
+        {
+          "name": "Cardio Training",
+          "children": [
+            {"name": "Treadmills"},
+            {"name": "Exercise Bike"},
+            {"name": "Elliptical Trainers"}
+          ]
+        },
+        {
+          "name": "Strength Training Equipment",
+          "children": [
+            {"name": "Dumbbells"},
+            {"name": "Bars"},
+            {"name": "Core & Abdominal Trainers"}
+          ]
+        },
+        {
+          "name": "Outdoor & Adventure",
+          "children": [
+            {"name": "Cycling"},
+            {"name": "Running"}
+          ]
+        },
+        {
+          "name": "Sports Wear",
+          "children": [
+            {"name": "Men Sports Wear"},
+            {"name": "Women Sports Wear"}
+          ]
+        },
+        {
+          "name": "Sports & Fitness",
+          "children": [
+            {"name": "Accessories"},
+            {"name": "Swimming"},
+            {"name": "Team Sports"},
+            {"name": "Hunting & Fishing"},
+            {"name": "Leisure Sports & Game Room"}
+          ]
+        },
+        {
+          "name": "Accessories",
+          "children": [
+            {"name": "Exercise Bands"},
+            {"name": "Jump Ropes"},
+            {"name": "Exercise Mats"},
+            {"name": "Gym Bags"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Supermarket",
+      "children": [
+        {
+          "name": "Household Supplies",
+          "children": [
+            {"name": "Food Storage, Foil & Cling Film"},
+            {"name": "Disposable Plates & Cutlery"},
+            {"name": "Disposable Cups"},
+            {"name": "Trash, Compost & Lawn Bags"},
+            {"name": "Kitchen and Toilet Rolls"},
+            {"name": "Facial Tissues"},
+            {"name": "Household Batteries"},
+            {"name": "Lighters & Matches"}
+          ]
+        },
+        {
+          "name": "Household Cleaning",
+          "children": [
+            {"name": "Dishwashing"},
+            {"name": "Air Fresheners"},
+            {"name": "Kitchen Cleaners"},
+            {"name": "Bathroom Cleaners"},
+            {"name": "All Purpose & Floor Cleaners"},
+            {"name": "Glass Cleaners"},
+            {"name": "Disinfectants"},
+            {"name": "Cleaning Tools"},
+            {"name": "Wood Polish & Care"}
+          ]
+        },
+        {
+          "name": "Beverages",
+          "children": [
+            {"name": "Soft Drinks, Juices & Water"},
+            {"name": "Coffee, Tea & Cocoa"}
+          ]
+        },
+        {
+          "name": "Pet Supplies",
+          "children": [
+            {"name": "Dogs Supplies"},
+            {"name": "Cats Supplies"}
+          ]
+        },
+        {
+          "name": "Laundry",
+          "children": [
+            {"name": "Detergent"},
+            {"name": "Fabric Softener"},
+            {"name": "Stain Removal"},
+            {"name": "Lint Removal"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Televisions & Audio",
+      "children": [
+        {
+          "name": "Televisions & Receivers",
+          "children": [
+            {"name": "Televisions"},
+            {"name": "LED & LCD TVs"},
+            {"name": "Smart TVs"},
+            {"name": "Large Screens"},
+            {"name": "32-inch TVs"},
+            {"name": "43-inch TVs"},
+            {"name": "50-inch TVs"},
+            {"name": "55-inch TVs"},
+            {"name": "65-inch TVs"},
+            {"name": "Receivers"},
+            {"name": "Remote Controls"}
+          ]
+        },
+        {
+          "name": "Audio",
+          "children": [
+            {"name": "Radios"},
+            {"name": "Audio Speakers"},
+            {"name": "Home Theater Systems"},
+            {"name": "Headphones"}
+          ]
+        },
+        {
+          "name": "Cameras & Accessories",
+          "children": [
+            {"name": "Digital Cameras"},
+            {"name": "Lenses"},
+            {"name": "Projectors"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Home & Furniture",
+      "children": [
+        {
+          "name": "Home Essentials",
+          "children": [
+            {"name": "Home Decor"},
+            {"name": "Lighting"},
+            {"name": "Bedding"},
+            {"name": "Bath"},
+            {"name": "Storage & Organization"},
+            {"name": "Cleaning Supplies"},
+            {"name": "Event & Party Supplies"},
+            {"name": "Seasonal Decor"},
+            {"name": "Light Blubs"},
+            {"name": "Power & Hand Tools"},
+            {"name": "Air Purifiers"},
+            {"name": "Tools & Improvements"}
+          ]
+        },
+        {
+          "name": "Furniture",
+          "children": [
+            {"name": "Living room"},
+            {"name": "Bedroom Furniture"},
+            {"name": "Dining room"},
+            {"name": "Bean Bags"},
+            {"name": "TV Units"},
+            {"name": "Storage Units"}
+          ]
+        },
+        {
+          "name": "Kitchen & Dining",
+          "children": [
+            {"name": "Cookware"},
+            {"name": "Bakeware"},
+            {"name": "Serveware"},
+            {"name": "Glassware"},
+            {"name": "Kitchen Utensils"},
+            {"name": "Kitchen Storage"}
+          ]
+        },
+        {
+          "name": "Garden & Outdoors",
+          "children": [
+            {"name": "Outdoor Decor"},
+            {"name": "Outdoor Furniture & Accessories"},
+            {"name": "Grills & Outdoor Cooking"},
+            {"name": "Gardening & Lawn Care"},
+            {"name": "Pest Control Repellents"},
+            {"name": "Artificial Plants"}
+          ]
+        },
+        {
+          "name": "School & Office Supplies",
+          "children": [
+            {"name": "School & Office Furniture"},
+            {"name": "Stationary & Supplies"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Fashion",
+      "children": [
+        {
+          "name": "Women's Fashion",
+          "children": [
+            {"name": "Tops & T-Shirts"},
+            {"name": "Dresses"},
+            {"name": "Blouses"},
+            {"name": "Bottoms"},
+            {"name": "Sneakers"},
+            {"name": "Swimwear"},
+            {"name": "Homewear & Lingerie"},
+            {"name": "Sandals & Slippers"},
+            {"name": "Accessories"},
+            {"name": "Kimonos"},
+            {"name": "Sports Shoes"}
+          ]
+        },
+        {
+          "name": "Men's Fashion",
+          "children": [
+            {"name": "T-Shirts & Polos"},
+            {"name": "Shirts"},
+            {"name": "Pants"},
+            {"name": "Sportswear"},
+            {"name": "Shorts"},
+            {"name": "Footwear"},
+            {"name": "Sports Shoes"},
+            {"name": "Pajamas"},
+            {"name": "Watches"},
+            {"name": "Underwear"},
+            {"name": "Accessories"}
+          ]
+        },
+        {
+          "name": "Kid's Fashion",
+          "children": [
+            {"name": "Boy's Fashion"},
+            {"name": "Girl's Fashion"},
+            {"name": "Baby Boy's Fashion"},
+            {"name": "Baby Girl's Fashion"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Computing",
+      "children": [
+        {
+          "name": "Desktop & Laptops",
+          "children": [
+            {"name": "2 in 1 Laptops"},
+            {"name": "Gaming Laptops"},
+            {"name": "Desktops"},
+            {"name": "Monitors"}
+          ]
+        },
+        {
+          "name": "Data Storage",
+          "children": [
+            {"name": "USB Flash Drives"},
+            {"name": "External Hard Drives"},
+            {"name": "Memory Cards"}
+          ]
+        },
+        {
+          "name": "Computer Components",
+          "children": [
+            {"name": "Internal Hard Drives"},
+            {"name": "Graphics Cards"},
+            {"name": "Fans & Cooling"},
+            {"name": "Audio & Video Accessories"},
+            {"name": "Computer Memory"}
+          ]
+        },
+        {
+          "name": "Computers & Accessories",
+          "children": [
+            {"name": "Laptop Accessories"},
+            {"name": "Laptop Bags & Sleeves"},
+            {"name": "Keyboard"},
+            {"name": "Mouse"},
+            {"name": "Cleaning & Repair"},
+            {"name": "Cables & Interconnects"},
+            {"name": "Scanners"},
+            {"name": "Printer Ink & Toner"}
+          ]
+        },
+        {
+          "name": "Networking Products",
+          "children": [
+            {"name": "Network Adapters"},
+            {"name": "Routers"},
+            {"name": "Wireless Access Points"},
+            {"name": "Network Switches"},
+            {"name": "Network Hubs"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Baby Products",
+      "children": [
+        {
+          "name": "Diapering",
+          "children": [
+            {"name": "Disposable Diapers"},
+            {"name": "Wipes & Holders"},
+            {"name": "Diaper Bags"}
+          ]
+        },
+        {
+          "name": "Baby Feeding",
+          "children": [
+            {"name": "Bottle-Feeding & Tablewear"},
+            {"name": "Breast feeding"},
+            {"name": "Baby Food"},
+            {"name": "Bibs & Burp Cloths"}
+          ]
+        },
+        {
+          "name": "Bathing & Skin Care",
+          "children": [
+            {"name": "Lotions"},
+            {"name": "Shampoo & Conditioner"},
+            {"name": "Bath Essentials"},
+            {"name": "Grooming & Healthcare Kits"},
+            {"name": "Potty Training"},
+            {"name": "Health & Baby Care"}
+          ]
+        },
+        {
+          "name": "Nursery",
+          "children": [
+            {"name": "Beds, Cribs & Bedding"},
+            {"name": "Nursery Decor"}
+          ]
+        },
+        {
+          "name": "Baby Safety",
+          "children": [
+            {"name": "Kitchen Safety"},
+            {"name": "Outdoor Safety"},
+            {"name": "Gear Safety"}
+          ]
+        },
+        {
+          "name": "Gear",
+          "children": [
+            {"name": "Swings, Jumpers & Bouncers"},
+            {"name": "Backpacks & Carriers"},
+            {"name": "Walkers"}
+          ]
+        },
+        {
+          "name": "Strollers & Accessories",
+          "children": [
+            {"name": "Accessories"},
+            {"name": "Strollers"},
+            {"name": "Car Seats"}
+          ]
+        },
+        {
+          "name": "Toys & Games",
+          "children": [
+            {"name": "Baby & Toddler Toys"},
+            {"name": "Dolls & Accessories"},
+            {"name": "Learning & Education"},
+            {"name": "Action Figures & Statues"},
+            {"name": "Arts & Crafts"},
+            {"name": "Dress Up & Pretend Play"},
+            {"name": "Puzzles"},
+            {"name": "Toy Remote Control & Play Vehicles"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phones & Tablets",
+      "children": [
+        {
+          "name": "Mobile Phones",
+          "children": [
+            {"name": "Android Phones"},
+            {"name": "IOS Phones"},
+            {"name": "Cell Phones"}
+          ]
+        },
+        {
+          "name": "Tablets",
+          "children": [
+            {"name": "Tablets"},
+            {"name": "Ipads"},
+            {"name": "Educational Tablets"},
+            {"name": "Tablet Accessories"}
+          ]
+        },
+        {
+          "name": "Telephones",
+          "children": [
+            {"name": "Landline Phones"}
+          ]
+        },
+        {
+          "name": "Mobile Phones Accessories",
+          "children": [
+            {"name": "Smart Watches"},
+            {"name": "Bluetooth Headsets"},
+            {"name": "Portable Power Banks"},
+            {"name": "Phone Cases"},
+            {"name": "Screen Protectors"},
+            {"name": "Cables"},
+            {"name": "Chargers"},
+            {"name": "Car Accessories"},
+            {"name": "Memory Cards"},
+            {"name": "Mounts & Stands"},
+            {"name": "Selfie Sticks & Tripods"},
+            {"name": "Batteries"},
+            {"name": "Adapters"},
+            {"name": "Speakers"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Appliances",
+      "children": [
+        {
+          "name": "Small Appliances",
+          "children": [
+            {"name": "Kettles"},
+            {"name": "Blenders"},
+            {"name": "Irons & Steamers"},
+            {"name": "Air Fryers"},
+            {"name": "Microwaves"},
+            {"name": "Coffee Machine"},
+            {"name": "Mixers"},
+            {"name": "Food Processors"},
+            {"name": "Hand Blenders"},
+            {"name": "Waffle & Sandwich Makers"},
+            {"name": "Ovens & Toasters"},
+            {"name": "Vacuums & Floor Care"},
+            {"name": "Juicers"},
+            {"name": "Grills"},
+            {"name": "Rice Cookers"}
+          ]
+        },
+        {
+          "name": "Large Appliances",
+          "children": [
+            {"name": "Refrigerators"},
+            {"name": "Freezers"},
+            {"name": "Dishwashers"},
+            {"name": "Washers & Driers"},
+            {"name": "Cookers"},
+            {"name": "Cooktop"},
+            {"name": "Range Hoods"}
+          ]
+        },
+        {
+          "name": "Cooling & Heating Appliances",
+          "children": [
+            {"name": "Air conditioners"},
+            {"name": "Household Fans"},
+            {"name": "Water Dispensers"},
+            {"name": "Water Heaters"},
+            {"name": "Water Coolers & Filters"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gaming",
+      "children": [
+        {
+          "name": "Playstation 5",
+          "children": [
+            {"name": "Consoles"},
+            {"name": "Games"},
+            {"name": "Controllers"},
+            {"name": "Cards"},
+            {"name": "Accessories"}
+          ]
+        },
+        {
+          "name": "Playstation 4",
+          "children": [
+            {"name": "Games"},
+            {"name": "Controllers"},
+            {"name": "Cards"},
+            {"name": "Accessories"}
+          ]
+        },
+        {
+          "name": "Xbox",
+          "children": [
+            {"name": "Controllers"},
+            {"name": "Accessories"}
+          ]
+        },
+        {
+          "name": "PC Gaming",
+          "children": [
+            {"name": "Gaming Laptops"},
+            {"name": "Headsets"},
+            {"name": "Keyboard"},
+            {"name": "Mouse"},
+            {"name": "Gaming Chairs"},
+            {"name": "Monitors"}
+          ]
+        },
+        {
+          "name": "Card & Board Games",
+          "children": [
+            {"name": "Card Games"},
+            {"name": "Board Games"}
+          ]
+        }
+      ]
+    }
+  ]
+}
