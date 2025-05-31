@@ -32,6 +32,7 @@ def get_descendant_ids(category):
     return ids
 
 class CategoryProductsView(APIView):
+    # No permission_classes needed - publicly accessible
     def get(self, request, slug):
         try:
             category = Category.objects.get(slug=slug)
@@ -280,9 +281,9 @@ class ProductDeleteView(generics.DestroyAPIView):
 
 
 class SearchSuggestionsView(APIView):
+    # No permission_classes needed - publicly accessible
     def get(self, request):
         query = request.GET.get('q', '').strip()
-
 
         # Limit results per category
         limit = 2
@@ -331,10 +332,9 @@ class SearchSuggestionsView(APIView):
 
 # converted product search into a general view for listing, searching, and filtering by recentlyadded, sponsered
 # , brand-slug, minprice, highprice and color in products
-@method_decorator(cache_page(60 * 5), name='get')  # Cache for 5 minutes
-@method_decorator(vary_on_headers("Authorization"), name='get')
-@method_decorator(vary_on_cookie, name='get')
+# Removing all decorators for caching and authentication
 class ProductListView(APIView):
+    # No permission_classes needed - publicly accessible
     def get(self, request):
         products = Product.objects.all()
         # Search functionality
