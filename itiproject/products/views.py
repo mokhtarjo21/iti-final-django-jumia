@@ -106,11 +106,11 @@ class CategoryProductsView(APIView):
             ).distinct().values('name', 'slug', 'image')
 
             # Get all unique colors for this category and its subcategories
-            category_colors = products.values('colors__name', 'colors__slug').distinct()
-            colors_list = [
-                {'name': c['colors__name'], 'slug': c['colors__slug']}
-                for c in category_colors if c['colors__name'] and c['colors__slug']
-            ]
+            # category_colors = products.values('colors__name', 'colors__slug').distinct()
+            # colors_list = [
+            #     {'name': c['colors__name'], 'slug': c['colors__slug']}
+            #     for c in category_colors if c['colors__name'] and c['colors__slug']
+            # ]
 
             # Get the minimum and maximum price for the filtered products
             price_range = products.aggregate(
@@ -139,7 +139,7 @@ class CategoryProductsView(APIView):
                 'products_count': products_count,
                 'products': product_serializer.data,
                 'brands': list(category_brands),
-                'colors': colors_list,
+                # 'colors': colors_list,
                 'min_price': price_range['min_price'],
                 'max_price': price_range['max_price'],
                 'pagination': pagination_data
@@ -420,11 +420,11 @@ class ProductListView(APIView):
             products = products.order_by('-quantity_sold')
 
         # Get all unique colors for the filtered products
-        category_colors = products.values('colors__name', 'colors__slug').distinct()
-        colors_list = [
-            {'name': c['colors__name'], 'slug': c['colors__slug']}
-            for c in category_colors if c['colors__name'] and c['colors__slug']
-        ]
+        # category_colors = products.values('colors__name', 'colors__slug').distinct()
+        # colors_list = [
+        #     {'name': c['colors__name'], 'slug': c['colors__slug']}
+        #     for c in category_colors if c['colors__name'] and c['colors__slug']
+        # ]
 
         # Get the minimum and maximum price for the filtered products
         price_range = products.aggregate(
@@ -476,7 +476,7 @@ class ProductListView(APIView):
         response_data = {
             'products_count': total_count,
             'products': serializer.data,
-            'colors': colors_list,
+            # 'colors': colors_list,
             'min_price': price_range['min_price'],
             'max_price': price_range['max_price'],
             'pagination': pagination_data
