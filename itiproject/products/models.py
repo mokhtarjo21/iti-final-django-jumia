@@ -328,3 +328,29 @@ class FlashSaleItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.discount_percentage}% off"
+
+
+class RecentlyViewedProduct(models.Model):
+    """Track recently viewed products by users"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recently_viewed_products'
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='viewed_by_users'
+    )
+    viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-viewed_at']
+        unique_together = ['user', 'product']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['viewed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} viewed {self.product.name}"

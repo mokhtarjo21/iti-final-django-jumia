@@ -18,6 +18,10 @@ urlpatterns = [
     # Product endpoints
     # ProductListView for all products, used to search for products by name, description, or category
     path('products/', ProductListView.as_view(), name='product-list'),
+    
+    # Recently viewed products endpoint
+    path('products/recently-viewed/', RecentlyViewedProductsView.as_view(), name='recently-viewed-products'),
+    
     # get product detail by id
     path('products/<uuid:pk>/', ProductDetailView.as_view(), name='product-detail'),
     # post to create product by admin

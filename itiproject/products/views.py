@@ -4,10 +4,11 @@ from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from .models import Category, Product, Brand, Color, Size
+from .models import Category, Product, Brand, Color, Size, RecentlyViewedProduct
 from .serializers import (
     ProductListSerializer, CategoryListSerializer, CategoryDetailSerializer, CategoryCreateUpdateSerializer,
-    ProductCreateUpdateSerializer, ProductImageSerializer, SizeSerializer, ColorSerializer, BrandListSerializer)
+    ProductCreateUpdateSerializer, ProductImageSerializer, SizeSerializer, ColorSerializer, BrandListSerializer,
+    RecentlyViewedProductSerializer)
 from rest_framework import generics
 from rest_framework import status
 # modules to handle auth
@@ -194,6 +195,74 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
     lookup_field = 'pk'
+    permission_classes = []  # Make authentication optional for viewing products
+    
+    def retrieve(self, request, *args, **kwargs):
+        import time
+        from django.db import connection
+        
+        current_time = int(time.time())  # Current Unix timestamp
+        instance = self.get_object()
+        
+        # Track this product view if user is authenticated
+        if request.user.is_authenticated:
+            print(f"User {request.user.username} is viewing product {instance.name} at {current_time}")
+            
+            # Check if this product is already in recently viewed
+            existing = RecentlyViewedProduct.objects.filter(
+                user=request.user,
+                product=instance
+            ).first()
+            
+            if existing:
+                print(f"Product was previously viewed at {existing.viewed_at}, updating timestamp")
+                # Delete and recreate to ensure timestamp is updated
+                existing.delete()
+                # Force database to flush changes
+                connection.commit()
+            
+            # Create a new entry
+            viewed_product = RecentlyViewedProduct.objects.create(
+                user=request.user,
+                product=instance
+            )
+            # Force database to flush changes
+            connection.commit()
+            
+            print(f"Created new view record for {instance.name}")
+            
+            # Verify the entry was created
+            verify = RecentlyViewedProduct.objects.filter(
+                user=request.user,
+                product=instance
+            ).exists()
+            print(f"Verification: Entry exists in database: {verify}")
+            
+            # Count total recently viewed products for this user
+            user_viewed_products = RecentlyViewedProduct.objects.filter(user=request.user)
+            print(f"User has viewed {user_viewed_products.count()} products")
+            
+            # Limit to most recent 20 products per user (optional)
+            if user_viewed_products.count() > 20:
+                # Delete the oldest entries beyond the limit
+                to_delete = user_viewed_products.order_by('-viewed_at')[20:]
+                for item in to_delete:
+                    item.delete()
+                # Force database to flush changes
+                connection.commit()
+        else:
+            print("User is not authenticated, not tracking product view")
+        
+        serializer = self.get_serializer(instance)
+        response = Response(serializer.data)
+        
+        # Add cache-busting headers
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        response['ETag'] = f'W/"{current_time}"'
+        
+        return response
 
 class ProductCreateView(generics.CreateAPIView):
     queryset = Product.objects.all()
@@ -567,3 +636,171 @@ class updateProduct(APIView):
             return Response({"error": "Product not found or unauthorized"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class RecentlyViewedProductsView(APIView):
+    """API endpoint to get recently viewed products for the logged-in user"""
+    permission_classes = [IsAuthenticated]
+    
+    @method_decorator(vary_on_headers("Authorization"))
+    @method_decorator(vary_on_cookie)
+    def get(self, request):
+        import time
+        current_time = int(time.time())  # Current Unix timestamp
+        
+        print(f"Getting recently viewed products for user: {request.user.username} (ID: {request.user.id})")
+        print(f"Request time: {current_time}")
+        
+        # Get limit parameter from query string (default to 11)
+        limit = int(request.GET.get('limit', 11))
+        print(f"Limit set to: {limit}")
+        
+        try:
+            # Add a timestamp parameter to prevent caching
+            timestamp = request.GET.get('timestamp', str(current_time))
+            print(f"Request timestamp: {timestamp}")
+            
+            # First, check how many recently viewed products exist for this user
+            total_count = RecentlyViewedProduct.objects.filter(user=request.user).count()
+            print(f"Total recently viewed products in database for this user: {total_count}")
+            
+            # List all recently viewed product IDs and timestamps
+            all_viewed = RecentlyViewedProduct.objects.filter(user=request.user).order_by('-viewed_at')
+            print("All recently viewed products:")
+            for i, viewed in enumerate(all_viewed):
+                print(f"{i+1}. {viewed.product.name} (ID: {viewed.product.id}) - Viewed at: {viewed.viewed_at}")
+            
+            # Get recently viewed products for this user - use select_related to optimize queries
+            recently_viewed = RecentlyViewedProduct.objects.filter(
+                user=request.user
+            ).select_related('product').order_by('-viewed_at')[:limit]
+            
+            print(f"Found {len(recently_viewed)} recently viewed products for response (limit: {limit})")
+            
+            # Extract just the products
+            products = [item.product for item in recently_viewed]
+            
+            # Serialize the products
+            serializer = ProductListSerializer(products, many=True)
+            
+            # Add Cache-Control header to prevent caching
+            response = Response({
+                'count': len(products),
+                'results': serializer.data,
+                'timestamp': current_time  # Add timestamp to response
+            })
+            
+            # Add aggressive cache-busting headers
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+            response['ETag'] = f'W/"{current_time}"'  # Weak ETag that changes every time
+            response['Last-Modified'] = f'{current_time}'  # Force Last-Modified to change
+            
+            return response
+            
+        except Exception as e:
+            print(f"Error in RecentlyViewedProductsView: {e}")
+            return Response({
+                'error': str(e)
+            }, status=500)
+
+class TrackProductViewAPI(APIView):
+    """API endpoint to track product views without returning product data"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        try:
+            # Find the product
+            product = Product.objects.get(pk=pk)
+            
+            # Track this product view
+            print(f"User {request.user.username} is tracking view for product {product.name}")
+            
+            # Get or create a RecentlyViewedProduct entry
+            viewed_product, created = RecentlyViewedProduct.objects.get_or_create(
+                user=request.user,
+                product=product
+            )
+            
+            # If it already existed, update the timestamp
+            if not created:
+                viewed_product.save()  # This will update the auto_now field
+                print(f"Updated existing view record for {product.name}")
+            else:
+                print(f"Created new view record for {product.name}")
+                
+            # Limit to most recent 20 products per user (optional)
+            user_viewed_products = RecentlyViewedProduct.objects.filter(user=request.user)
+            print(f"User has viewed {user_viewed_products.count()} products")
+            if user_viewed_products.count() > 20:
+                # Delete the oldest entries beyond the limit
+                to_delete = user_viewed_products.order_by('-viewed_at')[20:]
+                for item in to_delete:
+                    item.delete()
+                    
+            return Response({"status": "success", "message": "Product view tracked"})
+            
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=404)
+        except Exception as e:
+            print(f"Error tracking product view: {e}")
+            return Response({"error": str(e)}, status=500)
+
+class PostmanTestRecentlyViewedView(APIView):
+    """Special test endpoint for Postman that always returns fresh data"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        import time
+        import uuid
+        
+        current_time = int(time.time())  # Current Unix timestamp
+        request_id = str(uuid.uuid4())  # Generate a unique ID for this request
+        
+        print(f"POSTMAN TEST: Getting recently viewed products for user: {request.user.username} (ID: {request.user.id})")
+        print(f"POSTMAN TEST: Request ID: {request_id}, Time: {current_time}")
+        
+        # Get limit parameter from query string (default to 11)
+        limit = int(request.GET.get('limit', 10))
+        
+        try:
+            # Force a fresh database query
+            from django.db import connection
+            connection.close()  # Close any existing connections
+            
+            # Get recently viewed products directly from database
+            recently_viewed = RecentlyViewedProduct.objects.filter(
+                user=request.user
+            ).select_related('product').order_by('-viewed_at')[:limit]
+            
+            # Extract products
+            products = [item.product for item in recently_viewed]
+            
+            # Serialize the products
+            serializer = ProductListSerializer(products, many=True)
+            
+            # Create response with unique identifiers
+            response = Response({
+                'count': len(products),
+                'results': serializer.data,
+                'request_id': request_id,
+                'timestamp': current_time,
+                'server_time': current_time
+            })
+            
+            # Add aggressive cache-busting headers
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+            response['ETag'] = f'W/"{request_id}"'
+            response['X-Request-ID'] = request_id
+            
+            return response
+            
+        except Exception as e:
+            print(f"POSTMAN TEST ERROR: {e}")
+            return Response({
+                'error': str(e),
+                'request_id': request_id,
+                'timestamp': current_time
+            }, status=500)
